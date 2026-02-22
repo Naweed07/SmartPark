@@ -4,6 +4,12 @@ import { useState, useEffect } from 'react';
 import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag } from 'antd';
 import { EnvironmentOutlined, DollarOutlined, SearchOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const MapWithNoSSR = dynamic(() => import('../../components/MapComponent'), {
+    ssr: false,
+    loading: () => <div className="flex items-center justify-center h-full"><Text className="text-gray-500">Loading Map...</Text></div>
+});
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -126,9 +132,9 @@ export default function SearchSpaces() {
                     </div>
                 </div>
 
-                {/* Note: Map integration is mocked for MVP simplicity */}
-                <div className="w-full h-64 bg-gray-200 rounded-2xl mb-8 flex items-center justify-center border-2 border-dashed border-gray-300">
-                    <Text className="text-gray-500 text-lg flex items-center gap-2"><EnvironmentOutlined /> Interactive Map View (Mock)</Text>
+                {/* Interactive Leaflet Map */}
+                <div className="w-full h-[400px] bg-white rounded-2xl mb-8 border border-gray-100 shadow-sm relative z-0 overflow-hidden">
+                    <MapWithNoSSR spaces={spaces} onBookSpace={showBookingModal} />
                 </div>
 
                 <Row gutter={[24, 24]}>
