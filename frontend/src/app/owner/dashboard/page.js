@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag } from 'antd';
-import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider } from 'antd';
+import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const LocationPickerMapNoSSR = dynamic(
+    () => import('../../../components/LocationPickerMap'),
+    { ssr: false, loading: () => <div className="p-4 text-center text-gray-400">Loading Map...</div> }
+);
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -13,6 +19,7 @@ export default function OwnerDashboard() {
     const [bookings, setBookings] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [showMapPicker, setShowMapPicker] = useState(false);
     const [form] = Form.useForm();
     const router = useRouter();
 
@@ -26,19 +33,30 @@ export default function OwnerDashboard() {
     }, []);
 
     const fetchDashboardData = async () => {
-        const token = JSON.parse(localStorage.getItem('userInfo')).token;
         try {
+            const userInfo = localStorage.getItem('userInfo');
+            if (!userInfo) return;
+            const token = JSON.parse(userInfo).token;
+
             // Fetch Spaces
             const spaceRes = await fetch('http://localhost:5000/api/spaces/my', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            const spaceData = await spaceRes.json();
-            setSpaces(spaceData);
 
-            // Simple implementation: normally you'd fetch bookings across all spaces
-            // Here we just fetch for the first space as an example, or create a specific aggregate route
+            const spaceData = await spaceRes.json();
+
+            if (!spaceRes.ok) {
+                throw new Error(spaceData.message || 'Failed to fetch spaces');
+            }
+
+            setSpaces(spaceData);
         } catch (error) {
-            message.error('Error fetching dashboard data');
+            console.error('Dashboard Error:', error);
+            if (error.message.includes('Failed to fetch')) {
+                message.error('Cannot connect to backend! Is your server running on port 5000?');
+            } else {
+                message.error(`Dashboard Error: ${error.message}`);
+            }
         }
     };
 
@@ -48,7 +66,11 @@ export default function OwnerDashboard() {
 
         const payload = {
             name: values.name,
-            location: { address: values.address },
+            location: {
+                address: values.address,
+                lat: values.lat,
+                lng: values.lng
+            },
             capacity: values.capacity,
             rates: { hourly: values.hourlyRate, daily: values.dailyRate || 0 },
             rules: values.rules
@@ -67,6 +89,7 @@ export default function OwnerDashboard() {
             if (res.ok) {
                 message.success('Parking space added successfully!');
                 setIsModalVisible(false);
+                setShowMapPicker(false);
                 form.resetFields();
                 fetchDashboardData();
             } else {
@@ -79,9 +102,51 @@ export default function OwnerDashboard() {
         }
     };
 
+    const fetchCurrentLocationInfo = () => {
+        if (!navigator.geolocation) {
+            message.error("Geolocation is not supported by your browser");
+            return;
+        }
+
+        message.loading({ content: 'Fetching GPS coordinates...', key: 'location' });
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const { latitude, longitude } = position.coords;
+                // Reverse geocoding using OSM Nominatim
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                const data = await res.json();
+
+                if (data && data.display_name) {
+                    form.setFieldsValue({
+                        address: data.display_name,
+                        lat: latitude,
+                        lng: longitude
+                    });
+                    message.success({ content: 'Address fetched successfully!', key: 'location' });
+                } else {
+                    message.error({ content: 'Could not resolve address from GPS', key: 'location' });
+                }
+            } catch (error) {
+                message.error({ content: 'Error reversing geolocation data', key: 'location' });
+            }
+        }, () => {
+            message.error({ content: 'Please allow browser location access to use this feature', key: 'location' });
+        });
+    };
+
     const logout = () => {
         localStorage.removeItem('userInfo');
         router.push('/login');
+    };
+
+    const handleMapLocationSelect = (locationData) => {
+        form.setFieldsValue({
+            address: locationData.address,
+            lat: locationData.lat,
+            lng: locationData.lng
+        });
+        setShowMapPicker(false);
+        message.success('Location pinned from map!');
     };
 
     const columns = [
@@ -98,11 +163,16 @@ export default function OwnerDashboard() {
                 <div className="p-6">
                     <Title level={3} className="text-brand-600 m-0">Smart<span className="text-gray-900">Park</span></Title>
                 </div>
-                <Menu mode="inline" defaultSelectedKeys={['1']} className="border-r-0">
-                    <Menu.Item key="1" icon={<AppstoreOutlined />}>Dashboard</Menu.Item>
-                    <Menu.Item key="2" icon={<UnorderedListOutlined />}>My Bookings</Menu.Item>
-                    <Menu.Item key="3" icon={<LogoutOutlined />} onClick={logout} className="text-red-500 mt-auto">Logout</Menu.Item>
-                </Menu>
+                <Menu
+                    mode="inline"
+                    defaultSelectedKeys={['1']}
+                    className="border-r-0"
+                    items={[
+                        { key: '1', icon: <AppstoreOutlined />, label: 'Dashboard' },
+                        { key: '2', icon: <UnorderedListOutlined />, label: 'My Bookings' },
+                        { key: '3', icon: <LogoutOutlined />, label: 'Logout', className: 'text-red-500 mt-auto', onClick: logout },
+                    ]}
+                />
             </Sider>
 
             <Layout>
@@ -152,9 +222,50 @@ export default function OwnerDashboard() {
                     <Form.Item name="name" label="Space Name" rules={[{ required: true }]}>
                         <Input placeholder="e.g. Downtown Prime Garage" />
                     </Form.Item>
-                    <Form.Item name="address" label="Full Address" rules={[{ required: true }]}>
-                        <Input placeholder="123 Main St, City" />
+
+                    <Form.Item label="Full Address" required className="mb-4">
+                        <div className="flex flex-col gap-3 relative">
+                            <Form.Item name="address" rules={[{ required: true, message: 'Please provide the address' }]} noStyle>
+                                <Input placeholder="123 Main St, City" className="pr-10" />
+                            </Form.Item>
+
+                            <div className="flex gap-2">
+                                <Button
+                                    type="dashed"
+                                    icon={<EnvironmentOutlined />}
+                                    onClick={fetchCurrentLocationInfo}
+                                    className="flex-1 text-brand-600 border-brand-200 hover:border-brand-400 bg-brand-50"
+                                >
+                                    Auto-Detect URL Location
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    ghost
+                                    icon={<GlobalOutlined />}
+                                    onClick={() => setShowMapPicker(!showMapPicker)}
+                                    className="border-brand-300 text-brand-600"
+                                >
+                                    {showMapPicker ? 'Hide Map' : 'Pin on Map'}
+                                </Button>
+                            </div>
+
+                            {/* Show the interactive Map Picker exactly when requested */}
+                            {showMapPicker && (
+                                <div className="mt-2 p-3 bg-gray-50 rounded-xl border border-gray-100 shadow-inner">
+                                    <p className="text-sm text-gray-500 mb-2 font-medium">Select Pin Location:</p>
+                                    <LocationPickerMapNoSSR
+                                        initialPosition={form.getFieldValue('lat') ? { lat: form.getFieldValue('lat'), lng: form.getFieldValue('lng') } : null}
+                                        onConfirm={handleMapLocationSelect}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </Form.Item>
+
+                    {/* Hidden fields to save the exact lat/lng coordinates to the database */}
+                    <Form.Item name="lat" hidden><Input /></Form.Item>
+                    <Form.Item name="lng" hidden><Input /></Form.Item>
+
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item name="capacity" label="Total Slots" rules={[{ required: true }]}>
