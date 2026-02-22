@@ -68,6 +68,25 @@ const updateSpace = async (req, res) => {
     }
 };
 
+// @desc    Delete a parking space
+// @route   DELETE /api/spaces/:id
+// @access  Private/Owner
+const deleteSpace = async (req, res) => {
+    const space = await ParkingSpace.findById(req.params.id);
+
+    if (space) {
+        if (space.ownerId.toString() !== req.user._id.toString()) {
+            res.status(401).json({ message: 'Not authorized to delete this space' });
+            return;
+        }
+
+        await ParkingSpace.deleteOne({ _id: space._id });
+        res.json({ message: 'Parking space removed' });
+    } else {
+        res.status(404).json({ message: 'Parking space not found' });
+    }
+};
+
 // @desc    Get owner's spaces
 // @route   GET /api/spaces/my
 // @access  Private/Owner
@@ -76,4 +95,4 @@ const getOwnerSpaces = async (req, res) => {
     res.json(spaces);
 };
 
-export { getSpaces, getSpaceById, createSpace, updateSpace, getOwnerSpaces };
+export { getSpaces, getSpaceById, createSpace, updateSpace, deleteSpace, getOwnerSpaces };

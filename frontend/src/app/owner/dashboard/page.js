@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider } from 'antd';
-import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined } from '@ant-design/icons';
+import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space } from 'antd';
+import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
@@ -20,6 +20,7 @@ export default function OwnerDashboard() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showMapPicker, setShowMapPicker] = useState(false);
+    const [editingSpaceId, setEditingSpaceId] = useState(null);
     const [form] = Form.useForm();
     const router = useRouter();
 
@@ -67,7 +68,7 @@ export default function OwnerDashboard() {
         }
     };
 
-    const handleAddSpace = async (values) => {
+    const handleSaveSpace = async (values) => {
         setLoading(true);
         const token = JSON.parse(localStorage.getItem('userInfo')).token;
 
@@ -84,8 +85,14 @@ export default function OwnerDashboard() {
         };
 
         try {
-            const res = await fetch('http://localhost:5000/api/spaces', {
-                method: 'POST',
+            const endpoint = editingSpaceId
+                ? `http://localhost:5000/api/spaces/${editingSpaceId}`
+                : 'http://localhost:5000/api/spaces';
+
+            const method = editingSpaceId ? 'PUT' : 'POST';
+
+            const res = await fetch(endpoint, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
@@ -94,18 +101,56 @@ export default function OwnerDashboard() {
             });
 
             if (res.ok) {
-                message.success('Parking space added successfully!');
-                setIsModalVisible(false);
-                setShowMapPicker(false);
-                form.resetFields();
+                message.success(`Parking space ${editingSpaceId ? 'updated' : 'added'} successfully!`);
+                closeModal();
                 fetchDashboardData();
             } else {
-                message.error('Failed to add space');
+                message.error(`Failed to ${editingSpaceId ? 'update' : 'add'} space`);
             }
         } catch (error) {
             message.error('Network error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalVisible(false);
+        setShowMapPicker(false);
+        setEditingSpaceId(null);
+        form.resetFields();
+    };
+
+    const handleEditSpace = (space) => {
+        setEditingSpaceId(space._id);
+        form.setFieldsValue({
+            name: space.name,
+            address: space.location.address,
+            lat: space.location.lat,
+            lng: space.location.lng,
+            capacity: space.capacity,
+            hourlyRate: space.rates.hourly,
+            dailyRate: space.rates.daily || 0,
+            rules: space.rules
+        });
+        setIsModalVisible(true);
+    };
+
+    const handleDeleteSpace = async (id) => {
+        const token = JSON.parse(localStorage.getItem('userInfo')).token;
+        try {
+            const res = await fetch(`http://localhost:5000/api/spaces/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                message.success('Parking space deleted');
+                fetchDashboardData();
+            } else {
+                message.error('Failed to delete space');
+            }
+        } catch (error) {
+            message.error('Network error during deletion');
         }
     };
 
@@ -162,6 +207,25 @@ export default function OwnerDashboard() {
         { title: 'Capacity', dataIndex: 'capacity', key: 'capacity' },
         { title: 'Hourly Rate', dataIndex: ['rates', 'hourly'], key: 'hourly', render: (text) => `$${text}` },
         { title: 'Status', dataIndex: 'isActive', key: 'isActive', render: (active) => <Tag color={active ? 'green' : 'red'}>{active ? 'Active' : 'Inactive'}</Tag> },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_, record) => (
+                <Space size="middle">
+                    <Button type="link" icon={<EditOutlined />} onClick={() => handleEditSpace(record)}>Edit</Button>
+                    <Popconfirm
+                        title="Delete the space"
+                        description="Are you sure to delete this parking space?"
+                        onConfirm={() => handleDeleteSpace(record._id)}
+                        okText="Yes"
+                        cancelText="No"
+                        okButtonProps={{ danger: true }}
+                    >
+                        <Button type="link" danger icon={<DeleteOutlined />}>Delete</Button>
+                    </Popconfirm>
+                </Space>
+            )
+        },
     ];
 
     return (
@@ -212,7 +276,7 @@ export default function OwnerDashboard() {
                     <Card
                         className="rounded-2xl shadow-sm border-0"
                         title={<Title level={4} className="m-0 pt-2">My Parking Spaces</Title>}
-                        extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)} className="rounded-lg">Add New Space</Button>}
+                        extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setEditingSpaceId(null); setIsModalVisible(true); }} className="rounded-lg">Add New Space</Button>}
                     >
                         <Table dataSource={spaces} columns={columns} rowKey="_id" pagination={{ pageSize: 5 }} />
                     </Card>
@@ -220,12 +284,12 @@ export default function OwnerDashboard() {
             </Layout>
 
             <Modal
-                title="Register New Parking Space"
+                title={editingSpaceId ? "Edit Parking Space" : "Register New Parking Space"}
                 open={isModalVisible}
-                onCancel={() => setIsModalVisible(false)}
+                onCancel={closeModal}
                 footer={null}
             >
-                <Form form={form} layout="vertical" onFinish={handleAddSpace} className="mt-4">
+                <Form form={form} layout="vertical" onFinish={handleSaveSpace} className="mt-4">
                     <Form.Item name="name" label="Space Name" rules={[{ required: true }]}>
                         <Input placeholder="e.g. Downtown Prime Garage" />
                     </Form.Item>
@@ -289,8 +353,8 @@ export default function OwnerDashboard() {
                         <Input.TextArea placeholder="e.g. No large trucks, open 24/7" rows={3} />
                     </Form.Item>
                     <Form.Item className="mb-0 text-right">
-                        <Button onClick={() => setIsModalVisible(false)} className="mr-2">Cancel</Button>
-                        <Button type="primary" htmlType="submit" loading={loading}>Save Space</Button>
+                        <Button onClick={closeModal} className="mr-2">Cancel</Button>
+                        <Button type="primary" htmlType="submit" loading={loading}>{editingSpaceId ? 'Update Space' : 'Save Space'}</Button>
                     </Form.Item>
                 </Form>
             </Modal>
