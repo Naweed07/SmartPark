@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag } from 'antd';
+import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag, Radio, Divider } from 'antd';
 import { EnvironmentOutlined, DollarOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -31,6 +31,12 @@ export default function SearchSpaces() {
     const [driverEmail, setDriverEmail] = useState('');
     const [driverPhone, setDriverPhone] = useState('');
     const [vehicleNumber, setVehicleNumber] = useState('');
+
+    // Payment State
+    const [paymentMethod, setPaymentMethod] = useState('CARD');
+    const [cardNumber, setCardNumber] = useState('');
+    const [cardExpiry, setCardExpiry] = useState('');
+    const [cardCVC, setCardCVC] = useState('');
 
     // Receipt state
     const [receiptData, setReceiptData] = useState(null);
@@ -118,6 +124,11 @@ export default function SearchSpaces() {
             return;
         }
 
+        if (paymentMethod === 'CARD' && (!cardNumber || !cardExpiry || !cardCVC)) {
+            message.error('Please fill in the mock card details to process payment');
+            return;
+        }
+
         setBookingLoading(true);
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
@@ -168,6 +179,7 @@ export default function SearchSpaces() {
                     totalAmount,
                     bookedHours,
                     appliedRateDescription,
+                    paymentMethod
                 }),
             });
 
@@ -177,23 +189,35 @@ export default function SearchSpaces() {
                 throw new Error(bookData.message || 'Booking failed');
             }
 
-            // 2. Process Mock Payment
-            const payRes = await fetch('http://localhost:5000/api/payments/process', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-                body: JSON.stringify({
-                    amount: totalAmount,
-                    bookingId: bookData._id,
-                }),
-            });
+            // 2. Process Mock Payment OR Handle On-Site logic
+            let transactionId = `onsite_${Date.now()}`;
+            let paymentSuccess = true;
 
-            const payData = await payRes.json();
+            if (paymentMethod === 'CARD') {
+                const payRes = await fetch('http://localhost:5000/api/payments/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${userInfo.token}`,
+                    },
+                    body: JSON.stringify({
+                        amount: totalAmount,
+                        bookingId: bookData._id,
+                    }),
+                });
 
-            if (payRes.ok && payData.success) {
-                message.success(`Booking confirmed! Paid $${totalAmount}`);
+                const payData = await payRes.json();
+
+                if (!payRes.ok || !payData.success) {
+                    paymentSuccess = false;
+                    message.error(payData.message || 'Payment declined by bank');
+                } else {
+                    transactionId = payData.transactionId;
+                }
+            }
+
+            if (paymentSuccess) {
+                message.success(paymentMethod === 'CARD' ? `Booking confirmed! Paid $${totalAmount}` : `Booking reserved! Please pay $${totalAmount} on arrival.`);
                 setIsModalVisible(false);
 
                 // Show on-screen receipt
@@ -207,7 +231,8 @@ export default function SearchSpaces() {
                     totalAmount,
                     bookedHours,
                     appliedRateDescription,
-                    transactionId: payData.transactionId || `txn_${Date.now()}`
+                    transactionId,
+                    paymentStatus: paymentMethod === 'CARD' ? 'PAID' : 'PENDING'
                 });
 
                 setBookingRange(null);
@@ -215,8 +240,9 @@ export default function SearchSpaces() {
                 setDriverEmail('');
                 setDriverPhone('');
                 setVehicleNumber('');
-            } else {
-                message.error(payData.message || 'Payment failed');
+                setCardNumber('');
+                setCardExpiry('');
+                setCardCVC('');
             }
 
         } catch (error) {
@@ -371,6 +397,68 @@ export default function SearchSpaces() {
                                 </Row>
                             </div>
 
+                            <div className="mb-4 pt-4 border-t border-gray-100">
+                                <p className="mb-3 font-medium text-gray-700">Payment Option:</p>
+                                <Radio.Group
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    value={paymentMethod}
+                                    className="w-full mb-4 flex flex-col sm:flex-row gap-3"
+                                >
+                                    <Radio.Button value="CARD" className="flex-1 text-center h-auto py-3 rounded-lg flex flex-col items-center justify-center">
+                                        <Text strong className="block mb-1">Pay Now (Card)</Text>
+                                        <Text type="secondary" className="text-xs">Secure online payment</Text>
+                                    </Radio.Button>
+                                    <Radio.Button value="ON_SITE" className="flex-1 text-center h-auto py-3 rounded-lg flex flex-col items-center justify-center">
+                                        <Text strong className="block mb-1">Pay at Spot</Text>
+                                        <Text type="secondary" className="text-xs">Pay upon arrival</Text>
+                                    </Radio.Button>
+                                </Radio.Group>
+
+                                {paymentMethod === 'CARD' ? (
+                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 animate-fade-in-up">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <Text strong className="text-gray-600">Mock Card Details</Text>
+                                            <Tag color="cyan">Testing Mode</Tag>
+                                        </div>
+                                        <Input
+                                            placeholder="Card Number (e.g. 4242 4242 4242 4242)"
+                                            size="large"
+                                            className="mb-3 font-mono"
+                                            maxLength={19}
+                                            value={cardNumber}
+                                            onChange={(e) => setCardNumber(e.target.value)}
+                                        />
+                                        <Row gutter={12}>
+                                            <Col span={12}>
+                                                <Input
+                                                    placeholder="MM/YY"
+                                                    size="large"
+                                                    maxLength={5}
+                                                    className="font-mono text-center"
+                                                    value={cardExpiry}
+                                                    onChange={(e) => setCardExpiry(e.target.value)}
+                                                />
+                                            </Col>
+                                            <Col span={12}>
+                                                <Input
+                                                    placeholder="CVC"
+                                                    size="large"
+                                                    maxLength={3}
+                                                    className="font-mono text-center"
+                                                    value={cardCVC}
+                                                    onChange={(e) => setCardCVC(e.target.value)}
+                                                />
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                ) : (
+                                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-blue-700 animate-fade-in-up">
+                                        <p className="m-0 font-medium">Your slot will be reserved immediately!</p>
+                                        <p className="m-0 text-sm mt-1">Please ensure you pay the owner directly upon arriving at the location. The owner may cancel your reservation if you do not arrive on time.</p>
+                                    </div>
+                                )}
+                            </div>
+
                             {selectedSpace.rules && (
                                 <div className="bg-orange-50 p-4 rounded-lg mt-4 border border-orange-100">
                                     <Text strong className="text-orange-800">Rules:</Text>
@@ -410,8 +498,15 @@ export default function SearchSpaces() {
                                     <span className="font-mono text-gray-700">{receiptData.transactionId}</span>
                                 </div>
                                 <div className="flex justify-between border-b pb-3 mb-3">
-                                    <span className="text-gray-500">Amount Paid</span>
+                                    <span className="text-gray-500">Amount Due</span>
                                     <strong className="text-teal-600 text-lg">${receiptData.totalAmount}</strong>
+                                </div>
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Payment Status</span>
+                                    {receiptData.paymentStatus === 'PAID'
+                                        ? <Tag color="green" className="m-0 border-0 font-bold">PAID (Card)</Tag>
+                                        : <Tag color="orange" className="m-0 border-0 font-bold">PENDING (Pay at Spot)</Tag>
+                                    }
                                 </div>
                                 <div className="flex justify-between border-b pb-3 mb-3">
                                     <span className="text-gray-500">Parking Space</span>

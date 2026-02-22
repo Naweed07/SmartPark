@@ -258,6 +258,14 @@ export default function OwnerDashboard() {
         { title: 'Vehicle', dataIndex: 'vehicleNumber', key: 'vehicleNumber' },
         { title: 'Phone', dataIndex: 'driverPhone', key: 'driverPhone' },
         { title: 'Revenue', dataIndex: 'totalAmount', key: 'totalAmount', render: (val) => <strong className="text-teal-600">${val}</strong> },
+        {
+            title: 'Payment',
+            key: 'paymentStatus',
+            render: (_, record) => {
+                if (record.paymentStatus === 'PAID') return <Tag color="green">PAID Card</Tag>;
+                return <Tag color="orange">PENDING Spot</Tag>;
+            }
+        },
         { title: 'Start', dataIndex: 'startTime', key: 'startTime', render: (val) => new Date(val).toLocaleString() },
         { title: 'End', dataIndex: 'endTime', key: 'endTime', render: (val) => new Date(val).toLocaleString() },
     ];

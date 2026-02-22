@@ -40,6 +40,18 @@ const bookingSchema = mongoose.Schema({
         enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'],
         default: 'CONFIRMED',
     },
+    paymentMethod: {
+        type: String,
+        enum: ['CARD', 'ON_SITE'],
+        required: true,
+        default: 'CARD'
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['PAID', 'PENDING'],
+        required: true,
+        default: 'PENDING'
+    }
 }, {
     timestamps: true,
 });

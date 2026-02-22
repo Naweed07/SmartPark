@@ -18,8 +18,13 @@ router.post('/process', protect, (req, res) => {
                 // Find booking to get details for the receipt
                 const booking = await Booking.findById(bookingId).populate('spaceId', 'name location');
 
-                if (booking && booking.driverEmail) {
-                    const emailHtml = `
+                if (booking) {
+                    // Update payment status to paid
+                    booking.paymentStatus = 'PAID';
+                    await booking.save();
+
+                    if (booking.driverEmail) {
+                        const emailHtml = `
                         <div style="font-family: Arial, sans-serif; max-w-lg mx-auto p-4 bg-gray-50 border rounded-lg">
                             <h2 style="color: #14b8a6;">Booking Receipt Confirmed!</h2>
                             <p>Hi <b>${booking.driverName}</b>,</p>
@@ -40,11 +45,12 @@ router.post('/process', protect, (req, res) => {
                         </div>
                     `;
 
-                    await sendEmail({
-                        to: booking.driverEmail,
-                        subject: `💳 SmartPark Receipt for ${booking.spaceId.name}`,
-                        html: emailHtml
-                    });
+                        await sendEmail({
+                            to: booking.driverEmail,
+                            subject: `💳 SmartPark Receipt for ${booking.spaceId.name}`,
+                            html: emailHtml
+                        });
+                    }
                 }
             } catch (error) {
                 console.error("Error generating receipt email:", error);

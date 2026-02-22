@@ -101,6 +101,14 @@ export default function DriverDashboard() {
             render: (val) => <strong className="text-teal-600">${val}</strong>
         },
         {
+            title: 'Payment',
+            key: 'paymentStatus',
+            render: (_, record) => {
+                if (record.paymentStatus === 'PAID') return <Tag color="green">PAID (Card)</Tag>;
+                return <Tag color="orange">PENDING (On Site)</Tag>;
+            }
+        },
+        {
             title: 'Status',
             key: 'status',
             render: (_, record) => getStatusTag(record.status, record.endTime)

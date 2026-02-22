@@ -6,10 +6,10 @@ import mongoose from 'mongoose';
 // @route   POST /api/bookings
 // @access  Private
 const createBooking = async (req, res) => {
-    const { spaceId, startTime, endTime, totalAmount, driverName, driverPhone, driverEmail, vehicleNumber, bookedHours, appliedRateDescription } = req.body;
+    const { spaceId, startTime, endTime, totalAmount, driverName, driverPhone, driverEmail, vehicleNumber, bookedHours, appliedRateDescription, paymentMethod } = req.body;
 
-    if (!spaceId || !startTime || !endTime || !totalAmount || !driverName || !driverPhone || !driverEmail || !vehicleNumber) {
-        res.status(400).json({ message: 'All booking fields (including driver details) are required' });
+    if (!spaceId || !startTime || !endTime || !totalAmount || !driverName || !driverPhone || !driverEmail || !vehicleNumber || !paymentMethod) {
+        res.status(400).json({ message: 'All booking fields and payment method are required' });
         return;
     }
 
@@ -49,7 +49,9 @@ const createBooking = async (req, res) => {
         totalAmount,
         bookedHours,
         appliedRateDescription,
-        status: 'CONFIRMED', // Auto-confirming for simplicity
+        status: 'CONFIRMED', // Auto-confirming the reservation itself
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentMethod === 'ON_SITE' ? 'PENDING' : 'PENDING', // Card starts pending until /process is hit
     });
 
     const createdBooking = await booking.save();
