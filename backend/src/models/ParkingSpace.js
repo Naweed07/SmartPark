@@ -21,7 +21,12 @@ const parkingSpaceSchema = mongoose.Schema({
         default: 1,
     },
     rates: {
-        hourly: { type: Number, required: true },
+        hourly: { type: Number, required: true }, // Base rate for 1st hour
+        customTiers: [{ // Dynamic pricing brackets for hours 2+
+            minHours: { type: Number, required: true },
+            maxHours: { type: Number, required: true },
+            rate: { type: Number, required: true }
+        }],
         daily: { type: Number, required: true },
     },
     rules: {
