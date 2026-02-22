@@ -15,7 +15,9 @@ const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
 export default function OwnerDashboard() {
+    const [activeMenu, setActiveMenu] = useState('1'); // '1' = Dashboard, '2' = Bookings
     const [spaces, setSpaces] = useState([]);
+    const [bookings, setBookings] = useState([]);
     const [metrics, setMetrics] = useState({ activeBookings: 0, totalRevenue: 0 });
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -39,18 +41,22 @@ export default function OwnerDashboard() {
             if (!userInfo) return;
             const token = JSON.parse(userInfo).token;
 
-            // Fetch Spaces and Metrics currently
-            const [spaceRes, metricsRes] = await Promise.all([
+            // Fetch Spaces, Metrics, and Bookings concurrently
+            const [spaceRes, metricsRes, bookingsRes] = await Promise.all([
                 fetch('http://localhost:5000/api/spaces/my', {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
                 fetch('http://localhost:5000/api/bookings/metrics/owner', {
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                fetch('http://localhost:5000/api/bookings/owner', {
                     headers: { Authorization: `Bearer ${token}` }
                 })
             ]);
 
             const spaceData = await spaceRes.json();
             const metricsData = await metricsRes.ok ? await metricsRes.json() : { activeBookings: 0, totalRevenue: 0 };
+            const bookingsData = await bookingsRes.ok ? await bookingsRes.json() : [];
 
             if (!spaceRes.ok) {
                 throw new Error(spaceData.message || 'Failed to fetch spaces');
@@ -58,6 +64,7 @@ export default function OwnerDashboard() {
 
             setSpaces(spaceData);
             setMetrics(metricsData);
+            setBookings(bookingsData);
         } catch (error) {
             console.error('Dashboard Error:', error);
             if (error.message.includes('Failed to fetch')) {
@@ -244,6 +251,17 @@ export default function OwnerDashboard() {
         },
     ];
 
+    const bookingColumns = [
+        { title: 'Space', dataIndex: ['spaceId', 'name'], key: 'spaceName' },
+        { title: 'Location', dataIndex: ['spaceId', 'location', 'address'], key: 'spaceLocation', ellipsis: true },
+        { title: 'Driver', dataIndex: 'driverName', key: 'driverName' },
+        { title: 'Vehicle', dataIndex: 'vehicleNumber', key: 'vehicleNumber' },
+        { title: 'Phone', dataIndex: 'driverPhone', key: 'driverPhone' },
+        { title: 'Revenue', dataIndex: 'totalAmount', key: 'totalAmount', render: (val) => <strong className="text-teal-600">${val}</strong> },
+        { title: 'Start', dataIndex: 'startTime', key: 'startTime', render: (val) => new Date(val).toLocaleString() },
+        { title: 'End', dataIndex: 'endTime', key: 'endTime', render: (val) => new Date(val).toLocaleString() },
+    ];
+
     return (
         <Layout className="min-h-screen">
             <Sider breakpoint="lg" collapsedWidth="0" className="bg-white shadow-xl z-10" width={250}>
@@ -253,6 +271,10 @@ export default function OwnerDashboard() {
                 <Menu
                     mode="inline"
                     defaultSelectedKeys={['1']}
+                    selectedKeys={[activeMenu]}
+                    onSelect={({ key }) => {
+                        if (key !== '3') setActiveMenu(key);
+                    }}
                     className="border-r-0"
                     items={[
                         { key: '1', icon: <AppstoreOutlined />, label: 'Dashboard' },
@@ -271,31 +293,42 @@ export default function OwnerDashboard() {
                 </Header>
 
                 <Content className="p-8 bg-gray-50">
-                    <Row gutter={[24, 24]} className="mb-8">
-                        <Col xs={24} sm={8}>
-                            <Card className="rounded-2xl shadow-sm border-0">
-                                <Statistic title="Total Spaces Listed" value={spaces.length} valueStyle={{ color: '#14b8a6' }} />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={8}>
-                            <Card className="rounded-2xl shadow-sm border-0">
-                                <Statistic title="Active Bookings" value={metrics.activeBookings} valueStyle={{ color: '#3f83f8' }} />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={8}>
-                            <Card className="rounded-2xl shadow-sm border-0">
-                                <Statistic title="Total Revenue" value={metrics.totalRevenue} prefix="$" valueStyle={{ color: '#10b981' }} />
-                            </Card>
-                        </Col>
-                    </Row>
+                    {activeMenu === '1' ? (
+                        <>
+                            <Row gutter={[24, 24]} className="mb-8">
+                                <Col xs={24} sm={8}>
+                                    <Card className="rounded-2xl shadow-sm border-0">
+                                        <Statistic title="Total Spaces Listed" value={spaces.length} valueStyle={{ color: '#14b8a6' }} />
+                                    </Card>
+                                </Col>
+                                <Col xs={24} sm={8}>
+                                    <Card className="rounded-2xl shadow-sm border-0">
+                                        <Statistic title="Active Bookings" value={metrics.activeBookings} valueStyle={{ color: '#3f83f8' }} />
+                                    </Card>
+                                </Col>
+                                <Col xs={24} sm={8}>
+                                    <Card className="rounded-2xl shadow-sm border-0">
+                                        <Statistic title="Total Revenue" value={metrics.totalRevenue} prefix="$" valueStyle={{ color: '#10b981' }} />
+                                    </Card>
+                                </Col>
+                            </Row>
 
-                    <Card
-                        className="rounded-2xl shadow-sm border-0"
-                        title={<Title level={4} className="m-0 pt-2">My Parking Spaces</Title>}
-                        extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setEditingSpaceId(null); setIsModalVisible(true); }} className="rounded-lg">Add New Space</Button>}
-                    >
-                        <Table dataSource={spaces} columns={columns} rowKey="_id" pagination={{ pageSize: 5 }} />
-                    </Card>
+                            <Card
+                                className="rounded-2xl shadow-sm border-0"
+                                title={<Title level={4} className="m-0 pt-2">My Parking Spaces</Title>}
+                                extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setEditingSpaceId(null); setIsModalVisible(true); }} className="rounded-lg">Add New Space</Button>}
+                            >
+                                <Table dataSource={spaces} columns={columns} rowKey="_id" pagination={{ pageSize: 5 }} scroll={{ x: 'max-content' }} />
+                            </Card>
+                        </>
+                    ) : (
+                        <Card
+                            className="rounded-2xl shadow-sm border-0"
+                            title={<Title level={4} className="m-0 pt-2">Incoming Reservations</Title>}
+                        >
+                            <Table dataSource={bookings} columns={bookingColumns} rowKey="_id" pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} />
+                        </Card>
+                    )}
                 </Content>
             </Layout>
 

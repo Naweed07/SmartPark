@@ -24,6 +24,15 @@ export default function SearchSpaces() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchedLocation, setSearchedLocation] = useState(null);
 
+    // Driver details state
+    const [driverName, setDriverName] = useState('');
+    const [driverEmail, setDriverEmail] = useState('');
+    const [driverPhone, setDriverPhone] = useState('');
+    const [vehicleNumber, setVehicleNumber] = useState('');
+
+    // Receipt state
+    const [receiptData, setReceiptData] = useState(null);
+
     const router = useRouter();
 
     useEffect(() => {
@@ -77,6 +86,11 @@ export default function SearchSpaces() {
             return;
         }
 
+        if (!driverName || !driverEmail || !driverPhone || !vehicleNumber) {
+            message.error('Please fill in all driver and vehicle details');
+            return;
+        }
+
         setBookingLoading(true);
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
@@ -115,6 +129,10 @@ export default function SearchSpaces() {
                     spaceId: selectedSpace._id,
                     startTime: bookingRange[0].toISOString(),
                     endTime: bookingRange[1].toISOString(),
+                    driverName,
+                    driverEmail,
+                    driverPhone,
+                    vehicleNumber,
                     totalAmount,
                 }),
             });
@@ -143,7 +161,24 @@ export default function SearchSpaces() {
             if (payRes.ok && payData.success) {
                 message.success(`Booking confirmed! Paid $${totalAmount}`);
                 setIsModalVisible(false);
+
+                // Show on-screen receipt
+                setReceiptData({
+                    spaceName: selectedSpace.name,
+                    address: selectedSpace.location.address,
+                    driverName,
+                    vehicleNumber,
+                    startTime: bookingRange[0].toISOString(),
+                    endTime: bookingRange[1].toISOString(),
+                    totalAmount,
+                    transactionId: payData.transactionId || `txn_${Date.now()}`
+                });
+
                 setBookingRange(null);
+                setDriverName('');
+                setDriverEmail('');
+                setDriverPhone('');
+                setVehicleNumber('');
             } else {
                 message.error(payData.message || 'Payment failed');
             }
@@ -265,12 +300,78 @@ export default function SearchSpaces() {
                                 />
                             </div>
 
+                            <div className="mb-4 pt-4 border-t border-gray-100">
+                                <p className="mb-3 font-medium text-gray-700">Driver & Vehicle Details:</p>
+                                <Row gutter={12} className="mb-3">
+                                    <Col span={12}>
+                                        <Input placeholder="Full Name" size="large" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+                                    </Col>
+                                    <Col span={12}>
+                                        <Input placeholder="Email Address" size="large" type="email" value={driverEmail} onChange={(e) => setDriverEmail(e.target.value)} />
+                                    </Col>
+                                </Row>
+                                <Row gutter={12}>
+                                    <Col span={12}>
+                                        <Input placeholder="Phone Number" size="large" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} />
+                                    </Col>
+                                    <Col span={12}>
+                                        <Input placeholder="Vehicle License Plate" size="large" value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} />
+                                    </Col>
+                                </Row>
+                            </div>
+
                             {selectedSpace.rules && (
                                 <div className="bg-orange-50 p-4 rounded-lg mt-4 border border-orange-100">
                                     <Text strong className="text-orange-800">Rules:</Text>
                                     <p className="text-orange-600 m-0 mt-1">{selectedSpace.rules}</p>
                                 </div>
                             )}
+                        </div>
+                    )}
+                </Modal>
+
+                {/* Success Receipt Modal */}
+                <Modal
+                    title={<div className="text-center text-xl text-teal-600 pb-2 border-b">🎉 Booking Successful!</div>}
+                    open={!!receiptData}
+                    onCancel={() => setReceiptData(null)}
+                    footer={[
+                        <Button key="close" type="primary" size="large" onClick={() => setReceiptData(null)}>
+                            Done
+                        </Button>,
+                    ]}
+                    centered
+                >
+                    {receiptData && (
+                        <div className="py-4">
+                            <p className="text-center text-gray-500 mb-6">A detailed receipt has been sent to your email.</p>
+
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Transaction ID</span>
+                                    <span className="font-mono text-gray-700">{receiptData.transactionId}</span>
+                                </div>
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Amount Paid</span>
+                                    <strong className="text-teal-600 text-lg">${receiptData.totalAmount}</strong>
+                                </div>
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Parking Space</span>
+                                    <strong className="text-gray-800">{receiptData.spaceName}</strong>
+                                </div>
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Vehicle</span>
+                                    <strong className="text-gray-800">{receiptData.vehicleNumber} ({receiptData.driverName})</strong>
+                                </div>
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Arrival</span>
+                                    <span className="text-gray-800">{new Date(receiptData.startTime).toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Departure</span>
+                                    <span className="text-gray-800">{new Date(receiptData.endTime).toLocaleString()}</span>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </Modal>

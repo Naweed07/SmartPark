@@ -6,10 +6,10 @@ import mongoose from 'mongoose';
 // @route   POST /api/bookings
 // @access  Private
 const createBooking = async (req, res) => {
-    const { spaceId, startTime, endTime, totalAmount } = req.body;
+    const { spaceId, startTime, endTime, totalAmount, driverName, driverPhone, driverEmail, vehicleNumber } = req.body;
 
-    if (!spaceId || !startTime || !endTime || !totalAmount) {
-        res.status(400).json({ message: 'All booking fields are required' });
+    if (!spaceId || !startTime || !endTime || !totalAmount || !driverName || !driverPhone || !driverEmail || !vehicleNumber) {
+        res.status(400).json({ message: 'All booking fields (including driver details) are required' });
         return;
     }
 
@@ -42,6 +42,10 @@ const createBooking = async (req, res) => {
         spaceId,
         startTime: parsedStartTime,
         endTime: parsedEndTime,
+        driverName,
+        driverPhone,
+        driverEmail,
+        vehicleNumber,
         totalAmount,
         status: 'CONFIRMED', // Auto-confirming for simplicity
     });
@@ -134,4 +138,20 @@ const getOwnerMetrics = async (req, res) => {
     });
 };
 
-export { createBooking, getBookingById, getDriverBookings, getSpaceBookings, getOwnerMetrics };
+// @desc    Get all bookings for all spaces owned by logged in Owner
+// @route   GET /api/bookings/owner
+// @access  Private/Owner
+const getOwnerBookings = async (req, res) => {
+    // 1. Find all parking spaces owned by this user
+    const ownerSpaces = await ParkingSpace.find({ ownerId: req.user._id }).select('_id name location rates');
+    const spaceIds = ownerSpaces.map(space => space._id);
+
+    // 2. Find all bookings for those spaces
+    const bookings = await Booking.find({ spaceId: { $in: spaceIds } })
+        .populate('spaceId', 'name location')
+        .sort({ createdAt: -1 }); // Newest first
+
+    res.json(bookings);
+};
+
+export { createBooking, getBookingById, getDriverBookings, getSpaceBookings, getOwnerMetrics, getOwnerBookings };

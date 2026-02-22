@@ -19,6 +19,10 @@ const bookingSchema = mongoose.Schema({
         type: Date,
         required: true,
     },
+    driverName: { type: String, required: true },
+    driverPhone: { type: String, required: true },
+    driverEmail: { type: String, required: true },
+    vehicleNumber: { type: String, required: true },
     totalAmount: {
         type: Number,
         required: true,

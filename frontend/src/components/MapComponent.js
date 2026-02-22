@@ -6,6 +6,17 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css';
 import 'leaflet-defaulticon-compatibility';
 import { Button } from 'antd';
+import L from 'leaflet';
+
+// Define a custom red icon for the user's location
+const redIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
 
 // Component to fly to searched location
 function SearchedLocationController({ searchedLocation }) {
@@ -42,7 +53,7 @@ function LocationMarker({ onLocationFound, hasSearched }) {
     }, [map, onLocationFound, hasSearched]);
 
     return position === null ? null : (
-        <Marker position={position}>
+        <Marker position={position} icon={redIcon}>
             <Popup>
                 <strong>📍 You are here!</strong>
             </Popup>
