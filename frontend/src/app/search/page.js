@@ -115,8 +115,9 @@ export default function SearchSpaces() {
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
         // Calculate tiered total mathematically
-        const hours = bookingRange[1].diff(bookingRange[0], 'hours');
-        const bookedHours = Math.max(1, hours);
+        // Use minutes and divide by 60, then ceil carefully so any partial hour counts as a full hour
+        const exactHours = bookingRange[1].diff(bookingRange[0], 'minutes') / 60;
+        const bookedHours = Math.max(1, Math.ceil(exactHours));
 
         let totalAmount = selectedSpace.rates.hourly; // Always charge base rate for 1 hour by default
         let appliedRateDescription = `Base Rate ($${selectedSpace.rates.hourly}/hr)`;
@@ -158,6 +159,8 @@ export default function SearchSpaces() {
                     driverPhone,
                     vehicleNumber,
                     totalAmount,
+                    bookedHours,
+                    appliedRateDescription,
                 }),
             });
 

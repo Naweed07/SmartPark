@@ -31,6 +31,7 @@ router.post('/process', protect, (req, res) => {
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Vehicle Number:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.vehicleNumber}</td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Duration:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.bookedHours} Hour(s)</td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Applied Rate:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><i>${booking.appliedRateDescription}</i></td></tr>
+                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Total Amount:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b style="color: #14b8a6;">$${booking.totalAmount}</b></td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Start:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(booking.startTime).toLocaleString()}</td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>End:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(booking.endTime).toLocaleString()}</td></tr>
                             </table>
