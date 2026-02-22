@@ -16,7 +16,7 @@ const { Title } = Typography;
 
 export default function OwnerDashboard() {
     const [spaces, setSpaces] = useState([]);
-    const [bookings, setBookings] = useState([]);
+    const [metrics, setMetrics] = useState({ activeBookings: 0, totalRevenue: 0 });
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showMapPicker, setShowMapPicker] = useState(false);
@@ -38,18 +38,25 @@ export default function OwnerDashboard() {
             if (!userInfo) return;
             const token = JSON.parse(userInfo).token;
 
-            // Fetch Spaces
-            const spaceRes = await fetch('http://localhost:5000/api/spaces/my', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // Fetch Spaces and Metrics currently
+            const [spaceRes, metricsRes] = await Promise.all([
+                fetch('http://localhost:5000/api/spaces/my', {
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                fetch('http://localhost:5000/api/bookings/metrics/owner', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+            ]);
 
             const spaceData = await spaceRes.json();
+            const metricsData = await metricsRes.ok ? await metricsRes.json() : { activeBookings: 0, totalRevenue: 0 };
 
             if (!spaceRes.ok) {
                 throw new Error(spaceData.message || 'Failed to fetch spaces');
             }
 
             setSpaces(spaceData);
+            setMetrics(metricsData);
         } catch (error) {
             console.error('Dashboard Error:', error);
             if (error.message.includes('Failed to fetch')) {
@@ -192,12 +199,12 @@ export default function OwnerDashboard() {
                         </Col>
                         <Col xs={24} sm={8}>
                             <Card className="rounded-2xl shadow-sm border-0">
-                                <Statistic title="Active Bookings (Mock)" value={12} valueStyle={{ color: '#3f83f8' }} />
+                                <Statistic title="Active Bookings" value={metrics.activeBookings} valueStyle={{ color: '#3f83f8' }} />
                             </Card>
                         </Col>
                         <Col xs={24} sm={8}>
                             <Card className="rounded-2xl shadow-sm border-0">
-                                <Statistic title="Total Revenue (Mock)" value={845} prefix="$" valueStyle={{ color: '#10b981' }} />
+                                <Statistic title="Total Revenue" value={metrics.totalRevenue} prefix="$" valueStyle={{ color: '#10b981' }} />
                             </Card>
                         </Col>
                     </Row>

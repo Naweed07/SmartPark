@@ -1,5 +1,6 @@
 import Booking from '../models/Booking.js';
 import ParkingSpace from '../models/ParkingSpace.js';
+import mongoose from 'mongoose';
 
 // @desc    Create new booking
 // @route   POST /api/bookings
@@ -92,4 +93,45 @@ const getSpaceBookings = async (req, res) => {
     res.json(bookings);
 };
 
-export { createBooking, getBookingById, getDriverBookings, getSpaceBookings };
+// @desc    Get aggregated metrics for the logged in Owner
+// @route   GET /api/bookings/metrics/owner
+// @access  Private/Owner
+const getOwnerMetrics = async (req, res) => {
+    // 1. Find all parking spaces owned by this user
+    const ownerSpaces = await ParkingSpace.find({ ownerId: req.user._id }).select('_id');
+    const spaceIds = ownerSpaces.map(space => space._id);
+
+    // 2. Aggregate active bookings against those spaces
+    // 'CONFIRMED' bookings that haven't ended yet
+    const now = new Date();
+    const activeBookingsCount = await Booking.countDocuments({
+        spaceId: { $in: spaceIds },
+        status: 'CONFIRMED',
+        endTime: { $gte: now }
+    });
+
+    // 3. Aggregate total revenue across all time for those spaces
+    const revenueResult = await Booking.aggregate([
+        {
+            $match: {
+                spaceId: { $in: spaceIds },
+                status: 'CONFIRMED' // Only count paid/confirmed bookings
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalRevenue: { $sum: "$totalAmount" }
+            }
+        }
+    ]);
+
+    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+
+    res.json({
+        activeBookings: activeBookingsCount,
+        totalRevenue: totalRevenue
+    });
+};
+
+export { createBooking, getBookingById, getDriverBookings, getSpaceBookings, getOwnerMetrics };
