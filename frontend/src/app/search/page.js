@@ -38,6 +38,12 @@ export default function SearchSpaces() {
     const router = useRouter();
 
     useEffect(() => {
+        const userInfo = localStorage.getItem('userInfo');
+        if (!userInfo) {
+            message.warning('Please log in or create an account to find parking.');
+            router.push('/login');
+            return;
+        }
         fetchSpaces();
     }, []);
 
