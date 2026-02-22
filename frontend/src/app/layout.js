@@ -3,6 +3,7 @@ import './custom.css'
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
 import GlobalHeader from '../components/GlobalHeader';
+import GlobalFooter from '../components/GlobalFooter';
 
 export const metadata = {
     title: 'SmartPark | Find & Reserve Parking Space',
@@ -12,7 +13,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
-            <body>
+            <body className="min-h-screen flex flex-col">
                 <AntdRegistry>
                     <ConfigProvider theme={{
                         token: {
@@ -31,7 +32,10 @@ export default function RootLayout({ children }) {
                         }
                     }}>
                         <GlobalHeader />
-                        {children}
+                        <main className="flex-grow">
+                            {children}
+                        </main>
+                        <GlobalFooter />
                     </ConfigProvider>
                 </AntdRegistry>
             </body>

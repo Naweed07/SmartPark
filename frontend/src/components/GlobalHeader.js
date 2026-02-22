@@ -83,9 +83,22 @@ export default function GlobalHeader() {
             </div>
 
             <div className="flex items-center gap-4">
+                <Link href="/about" className="hidden md:block relative group">
+                    <Button type="text" className={`font-medium transition-colors ${pathname === '/about' ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`}>
+                        About Us
+                    </Button>
+                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-brand-500 transition-all duration-300 ${pathname === '/about' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                </Link>
+                <Link href="/contact" className="hidden md:block relative group">
+                    <Button type="text" className={`font-medium transition-colors ${pathname === '/contact' ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`}>
+                        Contact Us
+                    </Button>
+                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-brand-500 transition-all duration-300 ${pathname === '/contact' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                </Link>
+
                 {pathname !== '/search' && (
                     <Link href="/search">
-                        <Button type="text" className="font-medium hidden sm:flex items-center">
+                        <Button type="text" className="font-medium hidden sm:flex items-center text-brand-600 hover:bg-brand-50">
                             Find Parking
                         </Button>
                     </Link>
