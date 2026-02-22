@@ -19,8 +19,6 @@ router.post('/process', protect, (req, res) => {
                 const booking = await Booking.findById(bookingId).populate('spaceId', 'name location');
 
                 if (booking && booking.driverEmail) {
-                    const hours = Math.round((new Date(booking.endTime) - new Date(booking.startTime)) / (1000 * 60 * 60));
-
                     const emailHtml = `
                         <div style="font-family: Arial, sans-serif; max-w-lg mx-auto p-4 bg-gray-50 border rounded-lg">
                             <h2 style="color: #14b8a6;">Booking Receipt Confirmed!</h2>
@@ -31,7 +29,8 @@ router.post('/process', protect, (req, res) => {
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Parking Space:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.spaceId.name}</td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Location:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.spaceId.location.address}</td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Vehicle Number:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.vehicleNumber}</td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Duration:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${hours} Hour(s)</td></tr>
+                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Duration:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.bookedHours} Hour(s)</td></tr>
+                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Applied Rate:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><i>${booking.appliedRateDescription}</i></td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Start:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(booking.startTime).toLocaleString()}</td></tr>
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>End:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(booking.endTime).toLocaleString()}</td></tr>
                             </table>
@@ -50,7 +49,7 @@ router.post('/process', protect, (req, res) => {
                 console.error("Error generating receipt email:", error);
             }
 
-            res.json({ success: true, transactionId: \`txn_\${Date.now()}\` });
+            res.json({ success: true, transactionId: `txn_${Date.now()}` });
         } else {
             res.status(400).json({ success: false, message: 'Payment declined by bank' });
         }

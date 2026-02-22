@@ -98,23 +98,27 @@ export default function SearchSpaces() {
         const hours = bookingRange[1].diff(bookingRange[0], 'hours');
         const bookedHours = Math.max(1, hours);
 
-        let totalAmount = selectedSpace.rates.hourly; // Always charge base rate for hour 1
+        let totalAmount = selectedSpace.rates.hourly; // Always charge base rate for 1 hour by default
+        let appliedRateDescription = `Base Rate ($${selectedSpace.rates.hourly}/hr)`;
 
         if (bookedHours > 1) {
             let matchedTier = null;
 
             // Check if any custom tier matches the total booked hours
             if (selectedSpace.rates.customTiers && selectedSpace.rates.customTiers.length > 0) {
-                // Find a tier using reverse to allow later overrides or just finding the first matching bracket. 
-                // A better approach is to check minHours <= bookedHours && maxHours >= bookedHours
                 matchedTier = selectedSpace.rates.customTiers.find(tier =>
                     bookedHours >= tier.minHours && bookedHours <= tier.maxHours
                 );
             }
 
-            // Charge the remaining hours at the matched tier rate OR fallback to the base hourly rate
-            const additionalHoursRate = matchedTier ? matchedTier.rate : selectedSpace.rates.hourly;
-            totalAmount += ((bookedHours - 1) * additionalHoursRate);
+            if (matchedTier) {
+                // Apply the matched tier rate to ALL hours
+                totalAmount = bookedHours * matchedTier.rate;
+                appliedRateDescription = `Tier: ${matchedTier.minHours}-${matchedTier.maxHours} hrs ($${matchedTier.rate}/hr)`;
+            } else {
+                // Fallback: charge all hours at base rate if no tier matches
+                totalAmount = bookedHours * selectedSpace.rates.hourly;
+            }
         }
 
         try {
@@ -171,6 +175,8 @@ export default function SearchSpaces() {
                     startTime: bookingRange[0].toISOString(),
                     endTime: bookingRange[1].toISOString(),
                     totalAmount,
+                    bookedHours,
+                    appliedRateDescription,
                     transactionId: payData.transactionId || `txn_${Date.now()}`
                 });
 
@@ -283,7 +289,7 @@ export default function SearchSpaces() {
                                                     <strong className="text-brand-600">${tier.rate}/hr</strong>
                                                 </div>
                                             ))}
-                                            <div className="text-xs text-brand-600 italic mt-2">*Discounted rate applies to remaining hours after the 1st hour</div>
+                                            <div className="text-xs text-brand-600 italic mt-2">*Discounted tier rate applies to the ENTIRE duration of your stay.</div>
                                         </div>
                                     )}
                                 </div>
@@ -366,6 +372,14 @@ export default function SearchSpaces() {
                                 <div className="flex justify-between border-b pb-3 mb-3">
                                     <span className="text-gray-500">Arrival</span>
                                     <span className="text-gray-800">{new Date(receiptData.startTime).toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Duration</span>
+                                    <strong className="text-gray-800">{receiptData.bookedHours} Hour(s)</strong>
+                                </div>
+                                <div className="flex justify-between border-b pb-3 mb-3">
+                                    <span className="text-gray-500">Applied Rate</span>
+                                    <span className="text-gray-700 italic">{receiptData.appliedRateDescription}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Departure</span>

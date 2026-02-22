@@ -27,6 +27,14 @@ const bookingSchema = mongoose.Schema({
         type: Number,
         required: true,
     },
+    bookedHours: {
+        type: Number,
+        default: 1,
+    },
+    appliedRateDescription: {
+        type: String,
+        default: 'Base Rate',
+    },
     status: {
         type: String,
         enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'],

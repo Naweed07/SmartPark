@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 // @route   POST /api/bookings
 // @access  Private
 const createBooking = async (req, res) => {
-    const { spaceId, startTime, endTime, totalAmount, driverName, driverPhone, driverEmail, vehicleNumber } = req.body;
+    const { spaceId, startTime, endTime, totalAmount, driverName, driverPhone, driverEmail, vehicleNumber, bookedHours, appliedRateDescription } = req.body;
 
     if (!spaceId || !startTime || !endTime || !totalAmount || !driverName || !driverPhone || !driverEmail || !vehicleNumber) {
         res.status(400).json({ message: 'All booking fields (including driver details) are required' });
@@ -47,6 +47,8 @@ const createBooking = async (req, res) => {
         driverEmail,
         vehicleNumber,
         totalAmount,
+        bookedHours,
+        appliedRateDescription,
         status: 'CONFIRMED', // Auto-confirming for simplicity
     });
 
