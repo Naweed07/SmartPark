@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space } from 'antd';
-import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
@@ -80,7 +80,11 @@ export default function OwnerDashboard() {
                 lng: values.lng
             },
             capacity: values.capacity,
-            rates: { hourly: values.hourlyRate, daily: values.dailyRate || 0 },
+            rates: {
+                hourly: values.hourlyRate,
+                customTiers: values.customTiers || [], // Send dynamic array to backend
+                daily: values.dailyRate || 0
+            },
             rules: values.rules
         };
 
@@ -130,6 +134,7 @@ export default function OwnerDashboard() {
             lng: space.location.lng,
             capacity: space.capacity,
             hourlyRate: space.rates.hourly,
+            customTiers: space.rates.customTiers || [], // Pre-fill dynamic array
             dailyRate: space.rates.daily || 0,
             rules: space.rules
         });
@@ -205,7 +210,18 @@ export default function OwnerDashboard() {
         { title: 'Name', dataIndex: 'name', key: 'name' },
         { title: 'Address', dataIndex: ['location', 'address'], key: 'address' },
         { title: 'Capacity', dataIndex: 'capacity', key: 'capacity' },
-        { title: 'Hourly Rate', dataIndex: ['rates', 'hourly'], key: 'hourly', render: (text) => `$${text}` },
+        {
+            title: 'Rates',
+            key: 'rates',
+            render: (_, record) => (
+                <div className="flex flex-col">
+                    <span>${record.rates.hourly}/1st hr</span>
+                    {(record.rates.customTiers && record.rates.customTiers.length > 0) && (
+                        <span className="text-xs text-gray-500">+{record.rates.customTiers.length} custom tiers</span>
+                    )}
+                </div>
+            )
+        },
         { title: 'Status', dataIndex: 'isActive', key: 'isActive', render: (active) => <Tag color={active ? 'green' : 'red'}>{active ? 'Active' : 'Inactive'}</Tag> },
         {
             title: 'Action',
@@ -344,11 +360,55 @@ export default function OwnerDashboard() {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="hourlyRate" label="Hourly Rate ($)" rules={[{ required: true }]}>
+                            <Form.Item name="hourlyRate" label="Base Rate (1st Hr)" rules={[{ required: true }]} tooltip="Base price for the first hour of parking">
                                 <InputNumber min={0} className="w-full" prefix="$" />
                             </Form.Item>
                         </Col>
                     </Row>
+
+                    {/* Dynamic Custom Tiers Form List */}
+                    <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium text-gray-700">Custom Pricing Tiers (Optional)</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-4">Define special rates for extended parking durations (e.g. Hrs 2-5 = $8/hr)</p>
+
+                        <Form.List name="customTiers">
+                            {(fields, { add, remove }) => (
+                                <>
+                                    {fields.map(({ key, name, ...restField }) => (
+                                        <Row key={key} gutter={8} className="mb-2 flex items-center">
+                                            <Col span={7}>
+                                                <Form.Item {...restField} name={[name, 'minHours']} rules={[{ required: true, message: 'Missing min' }]} className="mb-0">
+                                                    <InputNumber placeholder="Min Hrs" min={2} className="w-full" />
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={2} className="text-center text-gray-400">to</Col>
+                                            <Col span={7}>
+                                                <Form.Item {...restField} name={[name, 'maxHours']} rules={[{ required: true, message: 'Missing max' }]} className="mb-0">
+                                                    <InputNumber placeholder="Max Hrs" min={2} className="w-full" />
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={6}>
+                                                <Form.Item {...restField} name={[name, 'rate']} rules={[{ required: true, message: 'Missing rate' }]} className="mb-0">
+                                                    <InputNumber placeholder="Rate" min={0} prefix="$" className="w-full" />
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={2} className="text-center">
+                                                <MinusCircleOutlined onClick={() => remove(name)} className="text-red-400 hover:text-red-600 cursor-pointer" />
+                                            </Col>
+                                        </Row>
+                                    ))}
+                                    <Form.Item className="mb-0 mt-2">
+                                        <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} className="border-brand-200 text-brand-600 hover:text-brand-700 hover:border-brand-400">
+                                            Add Custom Tier
+                                        </Button>
+                                    </Form.Item>
+                                </>
+                            )}
+                        </Form.List>
+                    </div>
+
                     <Form.Item name="rules" label="Rules & Restrictions">
                         <Input.TextArea placeholder="e.g. No large trucks, open 24/7" rows={3} />
                     </Form.Item>

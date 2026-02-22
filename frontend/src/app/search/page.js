@@ -80,9 +80,18 @@ export default function SearchSpaces() {
         setBookingLoading(true);
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-        // Calculate mock total (hours * hourly rate)
+        // Calculate tiered total
         const hours = bookingRange[1].diff(bookingRange[0], 'hours');
-        const totalAmount = Math.max(1, hours) * selectedSpace.rates.hourly;
+        const bookedHours = Math.max(1, hours);
+
+        let totalAmount = 0;
+        if (selectedSpace.rates.discountedHourly && bookedHours > 1) {
+            // First hour is base rate, remaining hours are discounted
+            totalAmount = selectedSpace.rates.hourly + ((bookedHours - 1) * selectedSpace.rates.discountedHourly);
+        } else {
+            // Standard flat rate across all hours
+            totalAmount = bookedHours * selectedSpace.rates.hourly;
+        }
 
         try {
             // 1. Create Booking
@@ -170,7 +179,12 @@ export default function SearchSpaces() {
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <Title level={4} className="m-0">{space.name}</Title>
-                                    <Tag color="cyan" className="rounded-full px-3 py-1 font-semibold">${space.rates.hourly}/hr</Tag>
+                                    <div className="flex flex-col items-end">
+                                        <Tag color="cyan" className="rounded-full px-3 py-1 font-semibold m-0">${space.rates.hourly}/1st hr</Tag>
+                                        {space.rates.discountedHourly && (
+                                            <span className="text-[10px] text-gray-400 mt-1 pr-1 font-medium">+ ${space.rates.discountedHourly}/hr after</span>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="text-gray-500 mb-4 flex items-start gap-2 flex-1">
@@ -204,10 +218,15 @@ export default function SearchSpaces() {
                 >
                     {selectedSpace && (
                         <div className="py-4">
-                            <p className="flex justify-between mb-4 text-lg">
-                                <span>Rate: <strong className="text-brand-600">${selectedSpace.rates.hourly}/hr</strong></span>
-                                <span><EnvironmentOutlined /> {selectedSpace.location.address}</span>
-                            </p>
+                            <div className="flex justify-between mb-4 text-base">
+                                <div className="flex flex-col">
+                                    <span>Rate: <strong className="text-brand-600">${selectedSpace.rates.hourly}</strong> (1st hour)</span>
+                                    {selectedSpace.rates.discountedHourly && (
+                                        <span className="text-sm text-gray-500">Then <strong className="text-brand-600">${selectedSpace.rates.discountedHourly}</strong> per subsequent hour</span>
+                                    )}
+                                </div>
+                                <span className="text-right text-gray-600"><EnvironmentOutlined /> {selectedSpace.location.address}</span>
+                            </div>
 
                             <div className="mb-4">
                                 <p className="mb-2 font-medium text-gray-700">Select Time Range:</p>
