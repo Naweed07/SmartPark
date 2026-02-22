@@ -1,6 +1,7 @@
 import './globals.css'
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
+import GlobalHeader from '../components/GlobalHeader';
 
 export const metadata = {
     title: 'SmartPark | Find & Reserve Parking Space',
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
                             }
                         }
                     }}>
+                        <GlobalHeader />
                         {children}
                     </ConfigProvider>
                 </AntdRegistry>

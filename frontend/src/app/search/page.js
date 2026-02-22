@@ -6,6 +6,7 @@ import { EnvironmentOutlined, DollarOutlined, SearchOutlined, DownloadOutlined }
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
+import dayjs from 'dayjs';
 
 const MapWithNoSSR = dynamic(() => import('../../components/MapComponent'), {
     ssr: false,
@@ -326,6 +327,20 @@ export default function SearchSpaces() {
                                     format="YYYY-MM-DD HH:mm"
                                     className="w-full rounded-lg"
                                     size="large"
+                                    disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                    disabledTime={(date, type) => {
+                                        if (!date) return {};
+                                        // Disable past times on the current day
+                                        if (date.isSame(dayjs(), 'day')) {
+                                            const currentHour = dayjs().hour();
+                                            const currentMinute = dayjs().minute();
+                                            return {
+                                                disabledHours: () => Array.from({ length: currentHour }, (_, i) => i),
+                                                disabledMinutes: (selectedHour) => selectedHour === currentHour ? Array.from({ length: currentMinute }, (_, i) => i) : [],
+                                            };
+                                        }
+                                        return {};
+                                    }}
                                     onChange={(dates) => setBookingRange(dates)}
                                 />
                             </div>
