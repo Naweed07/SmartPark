@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag } from 'antd';
-import { EnvironmentOutlined, DollarOutlined, SearchOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined, DollarOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import Script from 'next/script';
 
 const MapWithNoSSR = dynamic(() => import('../../components/MapComponent'), {
     ssr: false,
@@ -38,6 +39,25 @@ export default function SearchSpaces() {
     useEffect(() => {
         fetchSpaces();
     }, []);
+
+    const handleDownloadReceipt = () => {
+        const element = document.getElementById('receipt-content');
+        if (!element) return;
+
+        const opt = {
+            margin: 0.3,
+            filename: `SmartPark_Receipt_${receiptData.transactionId}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        if (window.html2pdf) {
+            window.html2pdf().set(opt).from(element).save();
+        } else {
+            message.error('PDF generation library is still loading. Please try again in a moment.');
+        }
+    };
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
@@ -198,6 +218,7 @@ export default function SearchSpaces() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
+            <Script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" strategy="lazyOnload" />
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <Title level={2} className="m-0">Find Parking</Title>
@@ -342,6 +363,9 @@ export default function SearchSpaces() {
                     open={!!receiptData}
                     onCancel={() => setReceiptData(null)}
                     footer={[
+                        <Button key="download" type="default" size="large" onClick={handleDownloadReceipt} icon={<DownloadOutlined />}>
+                            Download PDF
+                        </Button>,
                         <Button key="close" type="primary" size="large" onClick={() => setReceiptData(null)}>
                             Done
                         </Button>,
@@ -349,8 +373,12 @@ export default function SearchSpaces() {
                     centered
                 >
                     {receiptData && (
-                        <div className="py-4">
-                            <p className="text-center text-gray-500 mb-6">A detailed receipt has been sent to your email.</p>
+                        <div className="py-2" id="receipt-content">
+                            <div className="text-center mb-6 mt-4">
+                                <Title level={3} className="text-brand-600 m-0">Smart<span className="text-gray-900">Park</span></Title>
+                                <p className="text-gray-500 m-0 text-sm mt-1">123 Market Street, Kandy Sri Lanka</p>
+                                <p className="text-gray-500 m-0 text-sm">Tel: +94 (077) 888-0890 | support@smartpark.com</p>
+                            </div>
 
                             <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
                                 <div className="flex justify-between border-b pb-3 mb-3">
@@ -385,6 +413,13 @@ export default function SearchSpaces() {
                                     <span className="text-gray-500">Departure</span>
                                     <span className="text-gray-800">{new Date(receiptData.endTime).toLocaleString()}</span>
                                 </div>
+                            </div>
+
+                            <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+                                <p className="text-xs text-gray-400 m-0 font-medium uppercase tracking-wider">Terms and Conditions</p>
+                                <p className="text-[10px] text-gray-400 m-0 mt-2 leading-relaxed px-4">
+                                    Please retain this receipt for your records. SmartPark is not liable for theft or damage to vehicles. Vehicles left beyond the booked duration may be subject to towing or additional fees at the owner's discretion.
+                                </p>
                             </div>
                         </div>
                     )}
