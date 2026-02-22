@@ -77,7 +77,7 @@ export default function GlobalHeader() {
     ];
 
     return (
-        <Header className="bg-white px-6 md:px-12 flex items-center justify-between shadow-sm sticky top-0 z-50 h-16">
+        <Header className="custom-global-header px-6 md:px-12 flex items-center justify-between sticky top-0 z-50 h-16">
             <div className="flex items-center cursor-pointer" onClick={() => router.push('/')}>
                 <Title level={3} className="text-brand-600 m-0 leading-none">Smart<span className="text-gray-900">Park</span></Title>
             </div>

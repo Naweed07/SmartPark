@@ -1,0 +1,16 @@
+/* 
+  Custom Overrides CSS
+  Use this file to add raw CSS properties that override Ant Design or Tailwind defaults.
+*/
+
+/* Force the global header to be white, with a specific bottom box shadow */
+.custom-global-header {
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+}
+
+/* Example: Customizing the avatar background if you want to change it from the default theme color */
+.custom-avatar-bg {
+    background-color: #14b8a6 !important;
+}
