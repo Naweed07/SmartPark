@@ -80,17 +80,27 @@ export default function SearchSpaces() {
         setBookingLoading(true);
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-        // Calculate tiered total
+        // Calculate tiered total mathematically
         const hours = bookingRange[1].diff(bookingRange[0], 'hours');
         const bookedHours = Math.max(1, hours);
 
-        let totalAmount = 0;
-        if (selectedSpace.rates.discountedHourly && bookedHours > 1) {
-            // First hour is base rate, remaining hours are discounted
-            totalAmount = selectedSpace.rates.hourly + ((bookedHours - 1) * selectedSpace.rates.discountedHourly);
-        } else {
-            // Standard flat rate across all hours
-            totalAmount = bookedHours * selectedSpace.rates.hourly;
+        let totalAmount = selectedSpace.rates.hourly; // Always charge base rate for hour 1
+
+        if (bookedHours > 1) {
+            let matchedTier = null;
+
+            // Check if any custom tier matches the total booked hours
+            if (selectedSpace.rates.customTiers && selectedSpace.rates.customTiers.length > 0) {
+                // Find a tier using reverse to allow later overrides or just finding the first matching bracket. 
+                // A better approach is to check minHours <= bookedHours && maxHours >= bookedHours
+                matchedTier = selectedSpace.rates.customTiers.find(tier =>
+                    bookedHours >= tier.minHours && bookedHours <= tier.maxHours
+                );
+            }
+
+            // Charge the remaining hours at the matched tier rate OR fallback to the base hourly rate
+            const additionalHoursRate = matchedTier ? matchedTier.rate : selectedSpace.rates.hourly;
+            totalAmount += ((bookedHours - 1) * additionalHoursRate);
         }
 
         try {
@@ -181,8 +191,12 @@ export default function SearchSpaces() {
                                     <Title level={4} className="m-0">{space.name}</Title>
                                     <div className="flex flex-col items-end">
                                         <Tag color="cyan" className="rounded-full px-3 py-1 font-semibold m-0">${space.rates.hourly}/1st hr</Tag>
-                                        {space.rates.discountedHourly && (
-                                            <span className="text-[10px] text-gray-400 mt-1 pr-1 font-medium">+ ${space.rates.discountedHourly}/hr after</span>
+                                        {(space.rates.customTiers && space.rates.customTiers.length > 0) && (
+                                            <div className="text-[10px] text-gray-500 mt-1 pr-1 font-medium bg-gray-50 px-2 py-0.5 rounded border border-gray-100 text-right w-full">
+                                                {space.rates.customTiers.map((t, i) => (
+                                                    <div key={i}>{t.minHours}-{t.maxHours} hrs: ${t.rate}/hr</div>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -219,13 +233,25 @@ export default function SearchSpaces() {
                     {selectedSpace && (
                         <div className="py-4">
                             <div className="flex justify-between mb-4 text-base">
-                                <div className="flex flex-col">
-                                    <span>Rate: <strong className="text-brand-600">${selectedSpace.rates.hourly}</strong> (1st hour)</span>
-                                    {selectedSpace.rates.discountedHourly && (
-                                        <span className="text-sm text-gray-500">Then <strong className="text-brand-600">${selectedSpace.rates.discountedHourly}</strong> per subsequent hour</span>
+                                <div className="flex flex-col w-full">
+                                    <div className="flex justify-between w-full">
+                                        <span>Base Rate: <strong className="text-brand-600">${selectedSpace.rates.hourly}</strong> (1st hour)</span>
+                                        <span className="text-right text-gray-600"><EnvironmentOutlined /> {selectedSpace.location.address}</span>
+                                    </div>
+
+                                    {(selectedSpace.rates.customTiers && selectedSpace.rates.customTiers.length > 0) && (
+                                        <div className="mt-2 p-3 bg-gray-50 rounded-lg text-sm border border-gray-100">
+                                            <strong className="text-gray-700 block mb-1">Discounted Pricing Tiers:</strong>
+                                            {selectedSpace.rates.customTiers.map((tier, idx) => (
+                                                <div key={idx} className="flex justify-between text-gray-600 mb-0.5">
+                                                    <span>If staying {tier.minHours} to {tier.maxHours} total hours:</span>
+                                                    <strong className="text-brand-600">${tier.rate}/hr</strong>
+                                                </div>
+                                            ))}
+                                            <div className="text-xs text-brand-600 italic mt-2">*Discounted rate applies to remaining hours after the 1st hour</div>
+                                        </div>
                                     )}
                                 </div>
-                                <span className="text-right text-gray-600"><EnvironmentOutlined /> {selectedSpace.location.address}</span>
                             </div>
 
                             <div className="mb-4">

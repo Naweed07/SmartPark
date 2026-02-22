@@ -85,9 +85,24 @@ export default function MapComponent({ spaces, onBookSpace, searchedLocation }) 
                     return (
                         <Marker key={space._id} position={[lat, lng]}>
                             <Popup>
-                                <strong>{space.name}</strong><br />
-                                ${space.rates.hourly}/hr<br />
-                                <Button size="small" type="primary" onClick={() => onBookSpace(space)} className="mt-2">Book</Button>
+                                <div className="min-w-[150px]">
+                                    <strong className="block text-base mb-1">{space.name}</strong>
+                                    <div className="text-brand-600 font-semibold mb-1">${space.rates.hourly}/1st hr</div>
+
+                                    {(space.rates.customTiers && space.rates.customTiers.length > 0) && (
+                                        <div className="bg-gray-50 p-1.5 rounded border border-gray-100 text-xs mb-2 mt-1">
+                                            <strong className="text-gray-500 block mb-0.5" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Conditions:</strong>
+                                            {space.rates.customTiers.map((t, idx) => (
+                                                <div key={idx} className="flex justify-between text-gray-600 leading-tight" style={{ gap: '8px' }}>
+                                                    <span>{t.minHours} to {t.maxHours} hrs:</span>
+                                                    <strong>${t.rate}/hr</strong>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <Button size="small" type="primary" block className="mt-2" onClick={() => onBookSpace(space)}>Book</Button>
+                                </div>
                             </Popup>
                         </Marker>
                     );
