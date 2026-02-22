@@ -21,12 +21,32 @@ export default function SearchSpaces() {
     const [selectedSpace, setSelectedSpace] = useState(null);
     const [bookingRange, setBookingRange] = useState(null);
     const [bookingLoading, setBookingLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchedLocation, setSearchedLocation] = useState(null);
 
     const router = useRouter();
 
     useEffect(() => {
         fetchSpaces();
     }, []);
+
+    const handleSearch = async () => {
+        if (!searchQuery.trim()) return;
+        try {
+            message.loading({ content: 'Searching location...', key: 'search' });
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const { lat, lon } = data[0];
+                setSearchedLocation({ lat: parseFloat(lat), lng: parseFloat(lon) });
+                message.success({ content: 'Location found!', key: 'search' });
+            } else {
+                message.error({ content: 'Location not found', key: 'search' });
+            }
+        } catch (error) {
+            message.error({ content: 'Error searching location', key: 'search' });
+        }
+    };
 
     const fetchSpaces = async () => {
         try {
@@ -124,17 +144,20 @@ export default function SearchSpaces() {
                     <div className="flex gap-4 w-full md:w-auto">
                         <Input
                             prefix={<SearchOutlined />}
-                            placeholder="Search location..."
+                            placeholder="Search location (e.g., London)..."
                             size="large"
                             className="w-full md:w-64 rounded-lg"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onPressEnter={handleSearch}
                         />
-                        <Button type="primary" size="large" className="rounded-lg">Search</Button>
+                        <Button type="primary" size="large" className="rounded-lg" onClick={handleSearch}>Search</Button>
                     </div>
                 </div>
 
                 {/* Interactive Leaflet Map */}
                 <div className="w-full h-[400px] bg-white rounded-2xl mb-8 border border-gray-100 shadow-sm relative z-0 overflow-hidden">
-                    <MapWithNoSSR spaces={spaces} onBookSpace={showBookingModal} />
+                    <MapWithNoSSR spaces={spaces} onBookSpace={showBookingModal} searchedLocation={searchedLocation} />
                 </div>
 
                 <Row gutter={[24, 24]}>

@@ -7,8 +7,26 @@ import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import 'leaflet-defaulticon-compatibility';
 import { Button } from 'antd';
 
+// Component to fly to searched location
+function SearchedLocationController({ searchedLocation }) {
+    const map = useMap();
+    useEffect(() => {
+        if (searchedLocation) {
+            map.flyTo(searchedLocation, 14);
+        }
+    }, [searchedLocation, map]);
+
+    return searchedLocation ? (
+        <Marker position={searchedLocation}>
+            <Popup>
+                <strong>🎯 Searched Location</strong>
+            </Popup>
+        </Marker>
+    ) : null;
+}
+
 // Custom component to handle geolocation and centering the map
-function LocationMarker({ onLocationFound }) {
+function LocationMarker({ onLocationFound, hasSearched }) {
     const map = useMap();
     const [position, setPosition] = useState(null);
 
@@ -16,10 +34,12 @@ function LocationMarker({ onLocationFound }) {
         // Request geolocation from the user's browser
         map.locate().on("locationfound", function (e) {
             setPosition(e.latlng);
-            map.flyTo(e.latlng, 14); // Zoom in on the user's location
+            if (!hasSearched) {
+                map.flyTo(e.latlng, 14); // Zoom in on the user's location only if no manual search
+            }
             if (onLocationFound) onLocationFound(e.latlng);
         });
-    }, [map, onLocationFound]);
+    }, [map, onLocationFound, hasSearched]);
 
     return position === null ? null : (
         <Marker position={position}>
@@ -30,7 +50,7 @@ function LocationMarker({ onLocationFound }) {
     );
 }
 
-export default function MapComponent({ spaces, onBookSpace }) {
+export default function MapComponent({ spaces, onBookSpace, searchedLocation }) {
     const defaultCenter = [40.7128, -74.0060]; // Fallback to New York if location is disabled
     const [userLocation, setUserLocation] = useState(null);
 
@@ -48,13 +68,16 @@ export default function MapComponent({ spaces, onBookSpace }) {
                 />
 
                 {/* Adds the Blue marker for the user's current location */}
-                <LocationMarker onLocationFound={setUserLocation} />
+                <LocationMarker onLocationFound={setUserLocation} hasSearched={!!searchedLocation} />
+
+                {/* Controls the map view for manually searched locations */}
+                <SearchedLocationController searchedLocation={searchedLocation} />
 
                 {/* Render the parking spaces */}
                 {spaces.map((space) => {
-                    // Mock coordinates: Spawn the parking spots dynamically around wherever the user is located
-                    const baseLat = userLocation ? userLocation.lat : defaultCenter[0];
-                    const baseLng = userLocation ? userLocation.lng : defaultCenter[1];
+                    // Mock coordinates: Spawn the parking spots dynamically around wherever the user is located OR searched
+                    const baseLat = searchedLocation ? searchedLocation.lat : (userLocation ? userLocation.lat : defaultCenter[0]);
+                    const baseLng = searchedLocation ? searchedLocation.lng : (userLocation ? userLocation.lng : defaultCenter[1]);
 
                     const lat = space.location.lat || baseLat + (Math.random() - 0.5) * 0.05;
                     const lng = space.location.lng || baseLng + (Math.random() - 0.5) * 0.05;
