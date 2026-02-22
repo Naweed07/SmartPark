@@ -72,6 +72,25 @@ export default function SearchSpaces() {
         }
     };
 
+    const handleCardNumberChange = (e) => {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        // Add dash every 4 characters
+        let formattedValue = '';
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) formattedValue += '-';
+            formattedValue += value[i];
+        }
+        setCardNumber(formattedValue.slice(0, 19)); // Max 19 chars (16 digits + 3 dashes)
+    };
+
+    const handleExpiryChange = (e) => {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length >= 2) {
+            value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        setCardExpiry(value.slice(0, 5)); // Max 5 chars (MM/YY)
+    };
+
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
         try {
@@ -421,12 +440,12 @@ export default function SearchSpaces() {
                                             <Tag color="cyan">Testing Mode</Tag>
                                         </div>
                                         <Input
-                                            placeholder="Card Number (e.g. 4242 4242 4242 4242)"
+                                            placeholder="Card Number (e.g. 4242-4242-4242-4242)"
                                             size="large"
                                             className="mb-3 font-mono"
                                             maxLength={19}
                                             value={cardNumber}
-                                            onChange={(e) => setCardNumber(e.target.value)}
+                                            onChange={handleCardNumberChange}
                                         />
                                         <Row gutter={12}>
                                             <Col span={12}>
@@ -436,7 +455,7 @@ export default function SearchSpaces() {
                                                     maxLength={5}
                                                     className="font-mono text-center"
                                                     value={cardExpiry}
-                                                    onChange={(e) => setCardExpiry(e.target.value)}
+                                                    onChange={handleExpiryChange}
                                                 />
                                             </Col>
                                             <Col span={12}>
