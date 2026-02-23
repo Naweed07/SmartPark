@@ -46,7 +46,7 @@ function LocationMarker({ onLocationFound, hasSearched }) {
         map.locate().on("locationfound", function (e) {
             setPosition(e.latlng);
             if (!hasSearched) {
-                map.flyTo(e.latlng, 14); // Zoom in on the user's location only if no manual search
+                map.flyTo(e.latlng, 14); // Zoom in on the user's location
             }
             if (onLocationFound) onLocationFound(e.latlng);
         });
@@ -62,14 +62,15 @@ function LocationMarker({ onLocationFound, hasSearched }) {
 }
 
 export default function MapComponent({ spaces, onBookSpace, searchedLocation }) {
-    const defaultCenter = [40.7128, -74.0060]; // Fallback to New York if location is disabled
+    // Default to the center of Sri Lanka if location services are disabled or not yet loaded
+    const defaultCenter = [7.8731, 80.7718];
     const [userLocation, setUserLocation] = useState(null);
 
     return (
         <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
                 center={defaultCenter}
-                zoom={13}
+                zoom={7}
                 scrollWheelZoom={true}
                 style={{ height: '100%', width: '100%', borderRadius: '1rem', zIndex: 0 }}
             >
@@ -86,12 +87,14 @@ export default function MapComponent({ spaces, onBookSpace, searchedLocation }) 
 
                 {/* Render the parking spaces */}
                 {spaces.map((space) => {
-                    // Mock coordinates: Spawn the parking spots dynamically around wherever the user is located OR searched
-                    const baseLat = searchedLocation ? searchedLocation.lat : (userLocation ? userLocation.lat : defaultCenter[0]);
-                    const baseLng = searchedLocation ? searchedLocation.lng : (userLocation ? userLocation.lng : defaultCenter[1]);
+                    // Provide a deterministic, unshifting fallback coordinate if the database lacks exact lat/lng
+                    // We use a simple hash of the ID to keep the fallback pin in the exact same spot forever
+                    const hash = space._id ? space._id.toString().split('').reduce((a, c) => a + c.charCodeAt(0), 0) : 0;
+                    const latOffset = ((hash % 100) / 1000) - 0.05;
+                    const lngOffset = (((hash * 13) % 100) / 1000) - 0.05;
 
-                    const lat = space.location.lat || baseLat + (Math.random() - 0.5) * 0.05;
-                    const lng = space.location.lng || baseLng + (Math.random() - 0.5) * 0.05;
+                    const lat = space.location.lat || defaultCenter[0] + latOffset;
+                    const lng = space.location.lng || defaultCenter[1] + lngOffset;
 
                     return (
                         <Marker key={space._id} position={[lat, lng]}>

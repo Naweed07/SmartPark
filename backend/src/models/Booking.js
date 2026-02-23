@@ -42,7 +42,7 @@ const bookingSchema = mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['CARD', 'ON_SITE'],
+        enum: ['CARD', 'ON_SITE', 'PAYPAL'],
         required: true,
         default: 'CARD'
     },

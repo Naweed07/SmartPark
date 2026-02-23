@@ -52,7 +52,7 @@ const createBooking = async (req, res) => {
         appliedRateDescription,
         status: 'CONFIRMED', // Auto-confirming the reservation itself
         paymentMethod: paymentMethod,
-        paymentStatus: paymentMethod === 'ON_SITE' ? 'PENDING' : 'PENDING', // Card starts pending until /process is hit
+        paymentStatus: (paymentMethod === 'ON_SITE' || paymentMethod === 'CARD') ? 'PENDING' : 'PAID', // Card and OnSite start pending. PayPal is only hit post-approval.
     });
 
     const createdBooking = await booking.save();

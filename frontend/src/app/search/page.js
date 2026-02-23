@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag, Radio, Divider, QRCode } from 'antd';
 import { EnvironmentOutlined, DollarOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import dayjs from 'dayjs';
@@ -132,7 +133,20 @@ export default function SearchSpaces() {
         setIsModalVisible(true);
     };
 
-    const handleBook = async () => {
+    const handlePayPalApprove = async (data, actions) => {
+        try {
+            const details = await actions.order.capture();
+            if (details.status === "COMPLETED") {
+                // Manually trigger the booking now that PayPal is guaranteed paid
+                await handleBook(true, details.id);
+            }
+        } catch (error) {
+            message.error("PayPal payment could not be processed.");
+        }
+    };
+
+    // Modified handleBook to accept a bypass flag for PayPal
+    const handleBook = async (isPayPalApproved = false, paypalTransactionId = null) => {
         if (!bookingRange || bookingRange.length !== 2) {
             message.error('Please select a time range');
             return;
@@ -148,21 +162,19 @@ export default function SearchSpaces() {
             return;
         }
 
-        setBookingLoading(true);
+        // Only show loading if we aren't in the middle of a PayPal popup
+        if (!isPayPalApproved) setBookingLoading(true);
+
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-        // Calculate tiered total mathematically
-        // Use minutes and divide by 60, then ceil carefully so any partial hour counts as a full hour
         const exactHours = bookingRange[1].diff(bookingRange[0], 'minutes') / 60;
         const bookedHours = Math.max(1, Math.ceil(exactHours));
 
-        let totalAmount = selectedSpace.rates.hourly; // Always charge base rate for 1 hour by default
+        let totalAmount = selectedSpace.rates.hourly;
         let appliedRateDescription = `Base Rate ($${selectedSpace.rates.hourly}/hr)`;
 
         if (bookedHours > 1) {
             let matchedTier = null;
-
-            // Check if any custom tier matches the total booked hours
             if (selectedSpace.rates.customTiers && selectedSpace.rates.customTiers.length > 0) {
                 matchedTier = selectedSpace.rates.customTiers.find(tier =>
                     bookedHours >= tier.minHours && bookedHours <= tier.maxHours
@@ -170,13 +182,17 @@ export default function SearchSpaces() {
             }
 
             if (matchedTier) {
-                // Apply the matched tier rate to ALL hours
                 totalAmount = bookedHours * matchedTier.rate;
                 appliedRateDescription = `Tier: ${matchedTier.minHours}-${matchedTier.maxHours} hrs ($${matchedTier.rate}/hr)`;
             } else {
-                // Fallback: charge all hours at base rate if no tier matches
                 totalAmount = bookedHours * selectedSpace.rates.hourly;
             }
+        }
+
+        // If paying with PayPal, we DO NOT create the booking until PayPal is approved
+        if (paymentMethod === 'PAYPAL' && !isPayPalApproved) {
+            // Do not proceed with handleBook. Let the PayPalButton handle the popup.
+            return;
         }
 
         try {
@@ -208,8 +224,8 @@ export default function SearchSpaces() {
                 throw new Error(bookData.message || 'Booking failed');
             }
 
-            // 2. Process Mock Payment OR Handle On-Site logic
-            let transactionId = `onsite_${Date.now()}`;
+            // 2. Process mock card OR handle On-Site OR handle approved PayPal
+            let transactionId = paypalTransactionId || `onsite_${Date.now()}`;
             let paymentSuccess = true;
 
             if (paymentMethod === 'CARD') {
@@ -236,7 +252,11 @@ export default function SearchSpaces() {
             }
 
             if (paymentSuccess) {
-                message.success(paymentMethod === 'CARD' ? `Booking confirmed! Paid $${totalAmount}` : `Booking reserved! Please pay $${totalAmount} on arrival.`);
+                let successMsg = `Booking reserved! Please pay $${totalAmount} on arrival.`;
+                if (paymentMethod === 'CARD') successMsg = `Booking confirmed! Paid $${totalAmount} via Card.`;
+                if (paymentMethod === 'PAYPAL') successMsg = `Booking confirmed! Paid $${totalAmount} via PayPal.`;
+                message.success(successMsg);
+
                 setIsModalVisible(false);
 
                 // Show on-screen receipt
@@ -252,7 +272,7 @@ export default function SearchSpaces() {
                     bookedHours,
                     appliedRateDescription,
                     transactionId,
-                    paymentStatus: paymentMethod === 'CARD' ? 'PAID' : 'PENDING'
+                    paymentStatus: (paymentMethod === 'CARD' || paymentMethod === 'PAYPAL') ? 'PAID' : 'PENDING'
                 });
 
                 setBookingRange(null);
@@ -341,12 +361,17 @@ export default function SearchSpaces() {
                     title={selectedSpace ? `Book ${selectedSpace.name}` : 'Book Space'}
                     open={isModalVisible}
                     onCancel={() => setIsModalVisible(false)}
-                    footer={[
-                        <Button key="back" onClick={() => setIsModalVisible(false)}>Cancel</Button>,
-                        <Button key="submit" type="primary" loading={bookingLoading} onClick={handleBook}>
-                            Confirm & Pay
-                        </Button>,
-                    ]}
+                    footer={
+                        // We conditionally hide the natural 'Confirm & Pay' button 
+                        // if PayPal is selected, because PayPal brings its own buttons!
+                        paymentMethod === 'PAYPAL' ? [
+                            <Button key="back" onClick={() => setIsModalVisible(false)}>Cancel</Button>
+                        ] : [
+                            <Button key="back" onClick={() => setIsModalVisible(false)}>Cancel</Button>,
+                            <Button key="submit" type="primary" loading={bookingLoading} onClick={() => handleBook()}>
+                                Confirm & Pay
+                            </Button>,
+                        ]}
                 >
                     {selectedSpace && (
                         <div className="py-4">
@@ -422,19 +447,23 @@ export default function SearchSpaces() {
                                 <Radio.Group
                                     onChange={(e) => setPaymentMethod(e.target.value)}
                                     value={paymentMethod}
-                                    className="w-full mb-4 flex flex-col sm:flex-row gap-3"
+                                    className="w-full mb-4 flex flex-col sm:flex-row gap-2"
                                 >
-                                    <Radio.Button value="CARD" className="flex-1 text-center h-auto py-3 rounded-lg flex flex-col items-center justify-center">
+                                    <Radio.Button value="CARD" className="flex-1 text-center h-auto py-2 rounded-lg flex flex-col items-center justify-center">
                                         <Text strong className="block mb-1">Pay Now (Card)</Text>
-                                        <Text type="secondary" className="text-xs">Secure online payment</Text>
+                                        <Text type="secondary" className="text-[10px]">Mock API</Text>
                                     </Radio.Button>
-                                    <Radio.Button value="ON_SITE" className="flex-1 text-center h-auto py-3 rounded-lg flex flex-col items-center justify-center">
+                                    <Radio.Button value="PAYPAL" className="flex-1 text-center h-auto py-2 bg-blue-50 border-blue-200 rounded-lg flex flex-col items-center justify-center">
+                                        <Text strong className="block mb-1 text-blue-800">PayPal</Text>
+                                        <Text type="secondary" className="text-[10px]">Official Integration</Text>
+                                    </Radio.Button>
+                                    <Radio.Button value="ON_SITE" className="flex-1 text-center h-auto py-2 rounded-lg flex flex-col items-center justify-center">
                                         <Text strong className="block mb-1">Pay at Spot</Text>
-                                        <Text type="secondary" className="text-xs">Pay upon arrival</Text>
+                                        <Text type="secondary" className="text-[10px]">Pay on arrival</Text>
                                     </Radio.Button>
                                 </Radio.Group>
 
-                                {paymentMethod === 'CARD' ? (
+                                {paymentMethod === 'CARD' && (
                                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 animate-fade-in-up">
                                         <div className="flex justify-between items-center mb-3">
                                             <Text strong className="text-gray-600">Mock Card Details</Text>
@@ -471,7 +500,56 @@ export default function SearchSpaces() {
                                             </Col>
                                         </Row>
                                     </div>
-                                ) : (
+                                )}
+
+                                {paymentMethod === 'PAYPAL' && (
+                                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in-up">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <Text strong className="text-gray-600">Secure Checkout w/ PayPal</Text>
+                                            <Tag color="cyan">Sandbox Environment</Tag>
+                                        </div>
+                                        {/* Dynamically calculate totalAmount again for the PayPal order creation */}
+                                        {(() => {
+                                            const exactHours = bookingRange && bookingRange.length === 2 ? bookingRange[1].diff(bookingRange[0], 'minutes') / 60 : 0;
+                                            const bookedHours = Math.max(1, Math.ceil(exactHours));
+
+                                            let currentTotal = selectedSpace.rates.hourly;
+                                            if (bookedHours > 1) {
+                                                let matchedTier = null;
+                                                if (selectedSpace.rates.customTiers && selectedSpace.rates.customTiers.length > 0) {
+                                                    matchedTier = selectedSpace.rates.customTiers.find(tier => bookedHours >= tier.minHours && bookedHours <= tier.maxHours);
+                                                }
+                                                if (matchedTier) currentTotal = bookedHours * matchedTier.rate;
+                                                else currentTotal = bookedHours * selectedSpace.rates.hourly;
+                                            }
+
+                                            return (
+                                                <PayPalScriptProvider options={{ "client-id": "test", currency: "USD", intent: "capture" }}>
+                                                    <PayPalButtons
+                                                        forceReRender={[currentTotal, isModalVisible]}
+                                                        style={{ layout: "vertical", color: "blue", shape: "rect", label: "checkout" }}
+                                                        createOrder={(data, actions) => {
+                                                            if (!driverName || !driverEmail || !vehicleNumber || !bookingRange) {
+                                                                message.error('Please fill in all details before proceeding with PayPal');
+                                                                return actions.reject();
+                                                            }
+                                                            return actions.order.create({
+                                                                purchase_units: [{
+                                                                    amount: {
+                                                                        value: currentTotal.toString()
+                                                                    }
+                                                                }]
+                                                            });
+                                                        }}
+                                                        onApprove={handlePayPalApprove}
+                                                    />
+                                                </PayPalScriptProvider>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
+
+                                {paymentMethod === 'ON_SITE' && (
                                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-blue-700 animate-fade-in-up">
                                         <p className="m-0 font-medium">Your slot will be reserved immediately!</p>
                                         <p className="m-0 text-sm mt-1">Please ensure you pay the owner directly upon arriving at the location. The owner may cancel your reservation if you do not arrive on time.</p>
