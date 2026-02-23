@@ -41,6 +41,11 @@ router.post('/process', protect, (req, res) => {
                                 <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>End:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(booking.endTime).toLocaleString()}</td></tr>
                             </table>
                             
+                            <div style="text-align: center; margin-top: 20px;">
+                                <p style="font-size: 14px; font-weight: bold; color: #333;">Scan this QR code with the space owner upon arrival:</p>
+                                ${booking.qrCodeUrl ? `<img src="${booking.qrCodeUrl}" alt="Booking QR Code" style="width: 200px; height: 200px; margin: 10px auto;" />` : ''}
+                            </div>
+                            
                             <p style="margin-top: 20px; font-size: 12px; color: #888;">Thank you for using SmartPark!</p>
                         </div>
                     `;

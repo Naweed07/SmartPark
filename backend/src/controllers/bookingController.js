@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import ParkingSpace from '../models/ParkingSpace.js';
 import mongoose from 'mongoose';
+import QRCode from 'qrcode';
 
 // @desc    Create new booking
 // @route   POST /api/bookings
@@ -55,6 +56,16 @@ const createBooking = async (req, res) => {
     });
 
     const createdBooking = await booking.save();
+
+    // Generate QR Code Data URI
+    try {
+        const qrCodeDataUrl = await QRCode.toDataURL(createdBooking._id.toString());
+        createdBooking.qrCodeUrl = qrCodeDataUrl;
+        await createdBooking.save();
+    } catch (err) {
+        console.error('Failed to generate QR code:', err);
+    }
+
     res.status(201).json(createdBooking);
 };
 
@@ -158,4 +169,39 @@ const getOwnerBookings = async (req, res) => {
     res.json(bookings);
 };
 
-export { createBooking, getBookingById, getDriverBookings, getSpaceBookings, getOwnerMetrics, getOwnerBookings };
+// @desc    Check-in Driver via QR Code Scan (Owner)
+// @route   POST /api/bookings/check-in
+// @access  Private/Owner
+const checkInBooking = async (req, res) => {
+    const { bookingId } = req.body;
+
+    if (!bookingId) {
+        return res.status(400).json({ message: 'Booking ID is required' });
+    }
+
+    try {
+        const booking = await Booking.findById(bookingId).populate('spaceId');
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        if (booking.spaceId.ownerId.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'Not authorized for this space' });
+        }
+
+        if (booking.checkInStatus === 'CHECKED_IN') {
+            return res.status(400).json({ message: 'Driver is already checked in' });
+        }
+
+        booking.checkInStatus = 'CHECKED_IN';
+        await booking.save();
+
+        res.json({ message: 'Driver successfully checked in', booking });
+    } catch (error) {
+        console.error('Check-in error:', error);
+        res.status(500).json({ message: 'Server error during check-in' });
+    }
+};
+
+export { createBooking, getBookingById, getDriverBookings, getSpaceBookings, getOwnerMetrics, getOwnerBookings, checkInBooking };

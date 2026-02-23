@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space } from 'antd';
-import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, ScanOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
@@ -20,6 +20,9 @@ export default function OwnerDashboard() {
     const [bookings, setBookings] = useState([]);
     const [metrics, setMetrics] = useState({ activeBookings: 0, totalRevenue: 0 });
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isVerifyModalVisible, setIsVerifyModalVisible] = useState(false);
+    const [verifyBookingId, setVerifyBookingId] = useState('');
+    const [verifyLoading, setVerifyLoading] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [editingSpaceId, setEditingSpaceId] = useState(null);
@@ -130,6 +133,35 @@ export default function OwnerDashboard() {
         setShowMapPicker(false);
         setEditingSpaceId(null);
         form.resetFields();
+    };
+
+    const handleVerifySubmit = async () => {
+        if (!verifyBookingId.trim()) {
+            message.warning("Please enter a Booking ID");
+            return;
+        }
+        setVerifyLoading(true);
+        const token = JSON.parse(localStorage.getItem('userInfo')).token;
+        try {
+            const res = await fetch('http://localhost:5000/api/bookings/check-in', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ bookingId: verifyBookingId.trim() })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                message.success("Driver successfully checked in!");
+                setIsVerifyModalVisible(false);
+                setVerifyBookingId('');
+                fetchDashboardData();
+            } else {
+                message.error(data.message || 'Verification failed');
+            }
+        } catch (err) {
+            message.error("Network error during verification");
+        } finally {
+            setVerifyLoading(false);
+        }
     };
 
     const handleEditSpace = (space) => {
@@ -266,6 +298,15 @@ export default function OwnerDashboard() {
                 return <Tag color="orange">PENDING Spot</Tag>;
             }
         },
+        {
+            title: 'Check-In',
+            key: 'checkInStatus',
+            render: (_, record) => {
+                if (record.checkInStatus === 'CHECKED_IN') return <Tag icon={<CheckCircleOutlined />} color="success">Checked In</Tag>;
+                if (record.status === 'CANCELLED') return <Text type="secondary">-</Text>;
+                return <Tag color="processing">Awaiting Drop-off</Tag>;
+            }
+        },
         { title: 'Start', dataIndex: 'startTime', key: 'startTime', render: (val) => new Date(val).toLocaleString() },
         { title: 'End', dataIndex: 'endTime', key: 'endTime', render: (val) => new Date(val).toLocaleString() },
     ];
@@ -333,6 +374,16 @@ export default function OwnerDashboard() {
                         <Card
                             className="rounded-2xl shadow-sm border-0"
                             title={<Title level={4} className="m-0 pt-2">Incoming Reservations</Title>}
+                            extra={
+                                <Button
+                                    type="primary"
+                                    icon={<ScanOutlined />}
+                                    onClick={() => setIsVerifyModalVisible(true)}
+                                    className="bg-brand-500 hover:bg-brand-600 border-none rounded-lg"
+                                >
+                                    Verify QR Check-In
+                                </Button>
+                            }
                         >
                             <Table dataSource={bookings} columns={bookingColumns} rowKey="_id" pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} />
                         </Card>
@@ -458,6 +509,44 @@ export default function OwnerDashboard() {
                         <Button type="primary" htmlType="submit" loading={loading}>{editingSpaceId ? 'Update Space' : 'Save Space'}</Button>
                     </Form.Item>
                 </Form>
+            </Modal>
+
+            {/* QR Scanner / Verify Modal */}
+            <Modal
+                title={
+                    <div className="flex items-center gap-2 text-gray-800">
+                        <ScanOutlined className="text-brand-500 text-xl" />
+                        <span>Verify Driver Check-In</span>
+                    </div>
+                }
+                open={isVerifyModalVisible}
+                onCancel={() => { setIsVerifyModalVisible(false); setVerifyBookingId(''); }}
+                footer={null}
+                centered
+            >
+                <div className="py-4">
+                    <p className="text-gray-500 mb-6">
+                        If a driver arrives, ask them to show you their Booking QR code via their Dashboard.
+                        Enter the associated Booking ID here to officially check them into the space.
+                    </p>
+                    <Input
+                        placeholder="e.g. 64b8a...123f"
+                        size="large"
+                        value={verifyBookingId}
+                        onChange={(e) => setVerifyBookingId(e.target.value)}
+                        className="mb-4 font-mono text-center tracking-wider bg-gray-50 border-gray-200"
+                    />
+                    <Button
+                        type="primary"
+                        size="large"
+                        block
+                        loading={verifyLoading}
+                        onClick={handleVerifySubmit}
+                        className="bg-brand-500 hover:bg-brand-600 border-none font-semibold h-12"
+                    >
+                        Verify & Check-In Driver
+                    </Button>
+                </div>
             </Modal>
         </Layout>
     );

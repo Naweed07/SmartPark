@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag, Radio, Divider } from 'antd';
+import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag, Radio, Divider, QRCode } from 'antd';
 import { EnvironmentOutlined, DollarOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -241,6 +241,7 @@ export default function SearchSpaces() {
 
                 // Show on-screen receipt
                 setReceiptData({
+                    bookingId: bookData._id,
                     spaceName: selectedSpace.name,
                     address: selectedSpace.location.address,
                     driverName,
@@ -509,6 +510,13 @@ export default function SearchSpaces() {
                                 <Title level={3} className="text-brand-600 m-0">Smart<span className="text-gray-900">Park</span></Title>
                                 <p className="text-gray-500 m-0 text-sm mt-1">123 Market Street, Kandy Sri Lanka</p>
                                 <p className="text-gray-500 m-0 text-sm">Tel: +94 (077) 888-0890 | support@smartpark.com</p>
+                            </div>
+
+                            <div className="flex justify-center mb-6">
+                                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+                                    <QRCode value={receiptData.bookingId} size={160} color="#0f766e" />
+                                    <Text className="text-xs text-gray-400 mt-2 font-mono">Scan on Arrival</Text>
+                                </div>
                             </div>
 
                             <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">

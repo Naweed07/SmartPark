@@ -51,6 +51,15 @@ const bookingSchema = mongoose.Schema({
         enum: ['PAID', 'PENDING'],
         required: true,
         default: 'PENDING'
+    },
+    qrCodeUrl: {
+        type: String,
+        default: null
+    },
+    checkInStatus: {
+        type: String,
+        enum: ['PENDING', 'CHECKED_IN'],
+        default: 'PENDING'
     }
 }, {
     timestamps: true,

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Typography, Card, Table, Tag, message } from 'antd';
+import { Typography, Card, Table, Tag, message, Modal, Button, QRCode } from 'antd';
 import { useRouter } from 'next/navigation';
+import { QrcodeOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -10,6 +11,8 @@ const { Title, Text } = Typography;
 export default function DriverDashboard() {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isQrModalVisible, setIsQrModalVisible] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -109,10 +112,38 @@ export default function DriverDashboard() {
             }
         },
         {
+            title: 'Check-In',
+            key: 'checkInStatus',
+            render: (_, record) => {
+                if (record.checkInStatus === 'CHECKED_IN') return <Tag icon={<CheckCircleOutlined />} color="success">Checked In</Tag>;
+                if (record.status === 'CANCELLED') return <Text type="secondary">-</Text>;
+                return <Tag color="processing">Pending Arrival</Tag>;
+            }
+        },
+        {
             title: 'Status',
             key: 'status',
             render: (_, record) => getStatusTag(record.status, record.endTime)
         },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_, record) => (
+                record.status !== 'CANCELLED' && record.checkInStatus !== 'CHECKED_IN' ? (
+                    <Button
+                        type="primary"
+                        icon={<QrcodeOutlined />}
+                        onClick={() => {
+                            setSelectedBooking(record);
+                            setIsQrModalVisible(true);
+                        }}
+                        className="bg-brand-500 hover:bg-brand-600 border-none shadow-sm"
+                    >
+                        View QR
+                    </Button>
+                ) : null
+            )
+        }
     ];
 
     return (
@@ -134,6 +165,47 @@ export default function DriverDashboard() {
                         locale={{ emptyText: "You haven't made any bookings yet." }}
                     />
                 </Card>
+
+                {/* QR Code Modal for Check-in */}
+                <Modal
+                    title="Your Booking QR Code"
+                    open={isQrModalVisible}
+                    onCancel={() => {
+                        setIsQrModalVisible(false);
+                        setSelectedBooking(null);
+                    }}
+                    footer={[
+                        <Button key="close" onClick={() => setIsQrModalVisible(false)}>
+                            Close
+                        </Button>
+                    ]}
+                    centered
+                >
+                    <div className="flex flex-col items-center justify-center p-6 text-center">
+                        <Text className="text-gray-500 mb-6 block max-w-sm">
+                            Show this QR code to the parking space owner when you arrive to check-in securely.
+                        </Text>
+
+                        {selectedBooking && (
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <QRCode
+                                    value={selectedBooking._id}
+                                    size={250}
+                                    color="#0f766e" // brand color
+                                />
+                            </div>
+                        )}
+
+                        {selectedBooking && (
+                            <div className="mt-6">
+                                <Title level={5} className="m-0 text-gray-800">{selectedBooking.spaceId?.name}</Title>
+                                <Text className="font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded text-sm mt-2 block">
+                                    ID: {selectedBooking._id}
+                                </Text>
+                            </div>
+                        )}
+                    </div>
+                </Modal>
             </div>
         </div>
     );
