@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Typography, Card, Table, Tag, message, Modal, Button, QRCode } from 'antd';
+import { getApiUrl } from '../../../utils/api';
 import { useRouter } from 'next/navigation';
 import { QrcodeOutlined, CheckCircleOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -30,7 +31,7 @@ export default function DriverDashboard() {
             if (!userInfo) return;
             const token = JSON.parse(userInfo).token;
 
-            const res = await fetch('http://localhost:5000/api/bookings/my', {
+            const res = await fetch(`${getApiUrl()}/bookings/my`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

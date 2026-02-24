@@ -8,6 +8,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import dayjs from 'dayjs';
+import { getApiUrl } from '../../utils/api';
 
 const MapWithNoSSR = dynamic(() => import('../../components/MapComponent'), {
     ssr: false,
@@ -112,7 +113,7 @@ export default function SearchSpaces() {
 
     const fetchSpaces = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/spaces');
+            const res = await fetch(`${getApiUrl()}/spaces`);
             const data = await res.json();
             setSpaces(data);
         } catch (error) {
@@ -197,7 +198,7 @@ export default function SearchSpaces() {
 
         try {
             // 1. Create Booking
-            const bookRes = await fetch('http://localhost:5000/api/bookings', {
+            const bookRes = await fetch(`${getApiUrl()}/bookings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -229,7 +230,7 @@ export default function SearchSpaces() {
             let paymentSuccess = true;
 
             if (paymentMethod === 'CARD') {
-                const payRes = await fetch('http://localhost:5000/api/payments/process', {
+                const payRes = await fetch(`${getApiUrl()}/payments/process`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -608,7 +609,9 @@ export default function SearchSpaces() {
                             <div className="text-center mb-6 mt-4">
                                 <Title level={3} className="text-brand-600 m-0">Smart<span className="text-gray-900">Park</span></Title>
                                 <p className="text-gray-500 m-0 text-sm mt-1">123 Market Street, Kandy Sri Lanka</p>
-                                <p className="text-gray-500 m-0 text-sm">Tel: +94 (077) 888-0890 | support@smartpark.com</p>
+                                <p className="text-gray-500 m-0 text-sm">
+                                    Tel: <a href="tel:+940778880890" className="text-brand-600 hover:text-brand-500" suppressHydrationWarning>+94 (077) 888-0890</a> | <a href="mailto:support@smartpark.com" className="text-brand-600 hover:text-brand-500" suppressHydrationWarning>support@smartpark.com</a>
+                                </p>
                             </div>
 
                             <div className="flex justify-center mb-6">

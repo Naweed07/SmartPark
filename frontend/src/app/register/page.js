@@ -5,6 +5,7 @@ import { Form, Input, Button, Card, Typography, message, Select } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getApiUrl } from '../../utils/api';
 
 const { Title, Text } = Typography;
 
@@ -15,7 +16,7 @@ export default function Register() {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5000/api/users', {
+            const res = await fetch(`${getApiUrl()}/users`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

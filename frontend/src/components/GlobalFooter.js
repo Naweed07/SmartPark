@@ -70,11 +70,11 @@ export default function GlobalFooter() {
                             </div>
                             <div className="flex items-center gap-3">
                                 <PhoneOutlined className="text-brand-500" />
-                                <Text className="text-gray-400">+94 (077) 888-0890</Text>
+                                <a href="tel:+940778880890" className="text-gray-400 hover:text-brand-400 transition-colors" suppressHydrationWarning>+94 (077) 888-0890</a>
                             </div>
                             <div className="flex items-center gap-3">
                                 <MailOutlined className="text-brand-500" />
-                                <Text className="text-gray-400">support@smartpark.com</Text>
+                                <a href="mailto:support@smartpark.com" className="text-gray-400 hover:text-brand-400 transition-colors" suppressHydrationWarning>support@smartpark.com</a>
                             </div>
                         </div>
                     </Col>

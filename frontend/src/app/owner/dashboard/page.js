@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space } from 'antd';
 import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, ScanOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import { getApiUrl } from '../../../utils/api';
 import dynamic from 'next/dynamic';
 
 const LocationPickerMapNoSSR = dynamic(
@@ -46,13 +47,13 @@ export default function OwnerDashboard() {
 
             // Fetch Spaces, Metrics, and Bookings concurrently
             const [spaceRes, metricsRes, bookingsRes] = await Promise.all([
-                fetch('http://localhost:5000/api/spaces/my', {
+                fetch(`${getApiUrl()}/spaces/my`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                fetch('http://localhost:5000/api/bookings/metrics/owner', {
+                fetch(`${getApiUrl()}/bookings/metrics/owner`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                fetch('http://localhost:5000/api/bookings/owner', {
+                fetch(`${getApiUrl()}/bookings/owner`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
             ]);
@@ -100,8 +101,8 @@ export default function OwnerDashboard() {
 
         try {
             const endpoint = editingSpaceId
-                ? `http://localhost:5000/api/spaces/${editingSpaceId}`
-                : 'http://localhost:5000/api/spaces';
+                ? `${getApiUrl()}/spaces/${editingSpaceId}`
+                : `${getApiUrl()}/spaces`;
 
             const method = editingSpaceId ? 'PUT' : 'POST';
 
@@ -143,7 +144,7 @@ export default function OwnerDashboard() {
         setVerifyLoading(true);
         const token = JSON.parse(localStorage.getItem('userInfo')).token;
         try {
-            const res = await fetch('http://localhost:5000/api/bookings/check-in', {
+            const res = await fetch(`${getApiUrl()}/bookings/check-in`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ bookingId: verifyBookingId.trim() })
@@ -183,7 +184,7 @@ export default function OwnerDashboard() {
     const handleDeleteSpace = async (id) => {
         const token = JSON.parse(localStorage.getItem('userInfo')).token;
         try {
-            const res = await fetch(`http://localhost:5000/api/spaces/${id}`, {
+            const res = await fetch(`${getApiUrl()}/spaces/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });

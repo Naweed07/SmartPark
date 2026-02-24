@@ -57,8 +57,8 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <Title level={4} className="m-0 mb-1">Call Us Directly</Title>
-                                        <Text className="text-gray-500 block mb-1">General Inquiries: +94 (077) 888-0890</Text>
-                                        <Text className="text-gray-500 block">Support: +94 (077) 123-4567</Text>
+                                        <Text className="text-gray-500 block mb-1">General Inquiries: <a href="tel:+940778880890" className="text-blue-500 hover:text-blue-600 font-medium" suppressHydrationWarning>+94 (077) 888-0890</a></Text>
+                                        <Text className="text-gray-500 block">Support: <a href="tel:+940771234567" className="text-blue-500 hover:text-blue-600 font-medium" suppressHydrationWarning>+94 (077) 123-4567</a></Text>
                                     </div>
                                 </div>
                             </Card>

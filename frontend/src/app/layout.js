@@ -8,6 +8,9 @@ import GlobalFooter from '../components/GlobalFooter';
 export const metadata = {
     title: 'SmartPark | Find & Reserve Parking Space',
     description: 'Smart parking management for owners and drivers',
+    formatDetection: {
+        telephone: false,
+    },
 }
 
 export default function RootLayout({ children }) {

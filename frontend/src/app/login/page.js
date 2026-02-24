@@ -5,6 +5,7 @@ import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getApiUrl } from '../../utils/api';
 
 const { Title, Text } = Typography;
 
@@ -15,7 +16,7 @@ export default function Login() {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5000/api/users/login', {
+            const res = await fetch(`${getApiUrl()}/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
