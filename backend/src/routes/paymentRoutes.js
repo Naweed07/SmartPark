@@ -42,10 +42,9 @@ router.post('/process', protect, (req, res) => {
                             </table>
                             
                             <div style="text-align: center; margin-top: 20px;">
-                                <p style="font-size: 14px; font-weight: bold; color: #333;">Scan this QR code with the space owner upon arrival:</p>
-                                ${booking.qrCodeUrl ? `<img src="${booking.qrCodeUrl}" alt="Booking QR Code" style="width: 200px; height: 200px; margin: 10px auto;" />` : ''}
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${booking.spaceId.location.lat ? `${booking.spaceId.location.lat},${booking.spaceId.location.lng}` : encodeURIComponent(booking.spaceId.location.address)}" style="background-color: #14b8a6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Navigate to Parking Space</a>
                             </div>
-                            
+
                             <p style="margin-top: 20px; font-size: 12px; color: #888;">Thank you for using SmartPark!</p>
                         </div>
                     `;

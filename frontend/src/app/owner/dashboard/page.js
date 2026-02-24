@@ -438,12 +438,11 @@ export default function OwnerDashboard() {
                                     />
                                 </div>
                             )}
+                            {/* Hidden fields to save the exact lat/lng coordinates to the database */}
+                            <Form.Item name="lat" hidden><Input /></Form.Item>
+                            <Form.Item name="lng" hidden><Input /></Form.Item>
                         </div>
                     </Form.Item>
-
-                    {/* Hidden fields to save the exact lat/lng coordinates to the database */}
-                    <Form.Item name="lat" hidden><Input /></Form.Item>
-                    <Form.Item name="lng" hidden><Input /></Form.Item>
 
                     <Row gutter={16}>
                         <Col span={12}>

@@ -5,9 +5,15 @@ import generateToken from '../utils/generateToken.js';
 // @route   POST /api/users/login
 // @access  Public
 const authUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body; // 'email' field from frontend will contain either the actual email OR the username
 
-    const user = await User.findOne({ email });
+    // Find user by either email OR name using the provided input string
+    const user = await User.findOne({
+        $or: [
+            { email: email },
+            { name: email }
+        ]
+    });
 
     if (user && (await user.matchPassword(password))) {
         res.json({
@@ -18,7 +24,7 @@ const authUser = async (req, res) => {
             token: generateToken(user._id),
         });
     } else {
-        res.status(401).json({ message: 'Invalid email or password' });
+        res.status(401).json({ message: 'Invalid email/username or password' });
     }
 };
 

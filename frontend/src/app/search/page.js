@@ -573,6 +573,27 @@ export default function SearchSpaces() {
                     open={!!receiptData}
                     onCancel={() => setReceiptData(null)}
                     footer={[
+                        <Button
+                            key="navigate"
+                            type="default"
+                            size="large"
+                            icon={<EnvironmentOutlined />}
+                            onClick={() => {
+                                let destination = '';
+                                if (receiptData?.spaceId?.location?.lat && receiptData?.spaceId?.location?.lng) {
+                                    destination = `${receiptData.spaceId.location.lat},${receiptData.spaceId.location.lng}`;
+                                } else if (receiptData?.address) {
+                                    destination = encodeURIComponent(receiptData.address);
+                                }
+
+                                if (destination) {
+                                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}`, '_blank');
+                                }
+                            }}
+                            className="text-brand-600 border-brand-200 hover:border-brand-400 bg-brand-50"
+                        >
+                            Navigate
+                        </Button>,
                         <Button key="download" type="default" size="large" onClick={handleDownloadReceipt} icon={<DownloadOutlined />}>
                             Download PDF
                         </Button>,

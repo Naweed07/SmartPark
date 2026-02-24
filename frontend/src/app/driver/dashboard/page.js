@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Typography, Card, Table, Tag, message, Modal, Button, QRCode } from 'antd';
 import { useRouter } from 'next/navigation';
-import { QrcodeOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { QrcodeOutlined, CheckCircleOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -129,19 +129,46 @@ export default function DriverDashboard() {
             title: 'Action',
             key: 'action',
             render: (_, record) => (
-                record.status !== 'CANCELLED' && record.checkInStatus !== 'CHECKED_IN' ? (
-                    <Button
-                        type="primary"
-                        icon={<QrcodeOutlined />}
-                        onClick={() => {
-                            setSelectedBooking(record);
-                            setIsQrModalVisible(true);
-                        }}
-                        className="bg-brand-500 hover:bg-brand-600 border-none shadow-sm"
-                    >
-                        View QR
-                    </Button>
-                ) : null
+                <div className="flex gap-2">
+                    {record.status !== 'CANCELLED' && record.checkInStatus !== 'CHECKED_IN' && (
+                        <Button
+                            type="primary"
+                            icon={<QrcodeOutlined />}
+                            onClick={() => {
+                                setSelectedBooking(record);
+                                setIsQrModalVisible(true);
+                            }}
+                            className="bg-brand-500 hover:bg-brand-600 border-none shadow-sm"
+                        >
+                            View QR
+                        </Button>
+                    )}
+                    {record.spaceId?.location && (
+                        <Button
+                            type="default"
+                            icon={<EnvironmentOutlined />}
+                            onClick={() => {
+                                let destination = '';
+
+                                // Google Maps prefers exact coordinates for absolute precision over potentially unformatted addresses
+                                if (record.spaceId.location.lat && record.spaceId.location.lng) {
+                                    destination = `${record.spaceId.location.lat},${record.spaceId.location.lng}`;
+                                } else if (record.spaceId.location.address) {
+                                    destination = encodeURIComponent(record.spaceId.location.address);
+                                }
+
+                                if (destination) {
+                                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}`, '_blank');
+                                } else {
+                                    message.error('Location details not available for this space.');
+                                }
+                            }}
+                            className="text-brand-600 border-brand-200 hover:border-brand-400 bg-brand-50 shadow-sm"
+                        >
+                            Navigate
+                        </Button>
+                    )}
+                </div>
             )
         }
     ];

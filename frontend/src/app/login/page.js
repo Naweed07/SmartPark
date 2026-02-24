@@ -61,11 +61,10 @@ export default function Login() {
                     <Form.Item
                         name="email"
                         rules={[
-                            { required: true, message: 'Please input your Email!' },
-                            { type: 'email', message: 'Please enter a valid email!' }
+                            { required: true, message: 'Please input your Email or Username!' }
                         ]}
                     >
-                        <Input prefix={<UserOutlined className="text-gray-400" />} placeholder="Email" className="rounded-lg" />
+                        <Input prefix={<UserOutlined className="text-gray-400" />} placeholder="Email or Username" className="rounded-lg" />
                     </Form.Item>
 
                     <Form.Item

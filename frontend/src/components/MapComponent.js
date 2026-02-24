@@ -42,14 +42,33 @@ function LocationMarker({ onLocationFound, hasSearched }) {
     const [position, setPosition] = useState(null);
 
     useEffect(() => {
-        // Request geolocation from the user's browser
-        map.locate().on("locationfound", function (e) {
-            setPosition(e.latlng);
-            if (!hasSearched) {
-                map.flyTo(e.latlng, 14); // Zoom in on the user's location
+        if (!navigator.geolocation) return;
+
+        // Force the browser to bypass IP caching and request high-accuracy GPS
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const latlng = { lat: latitude, lng: longitude };
+
+                setPosition(latlng);
+
+                if (!hasSearched) {
+                    map.flyTo(latlng, 14); // Zoom in on the user's location
+                }
+
+                if (onLocationFound) onLocationFound(latlng);
+            },
+            (err) => {
+                console.warn("High-accuracy geolocation failed or was denied:", err);
+                // Fallback to leaflet's basic IP-based locate if native retrieval fails.
+                map.locate().on("locationfound", function (e) {
+                    setPosition(e.latlng);
+                    if (!hasSearched) map.flyTo(e.latlng, 14);
+                    if (onLocationFound) onLocationFound(e.latlng);
+                });
             }
-            if (onLocationFound) onLocationFound(e.latlng);
-        });
+            // Removed strict `{ enableHighAccuracy: true }` because it consistently times out on Windows Desktop
+        );
     }, [map, onLocationFound, hasSearched]);
 
     return position === null ? null : (
