@@ -4,6 +4,13 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
 import GlobalHeader from '../components/GlobalHeader';
 import GlobalFooter from '../components/GlobalFooter';
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({
+    subsets: ['latin'],
+    weight: ['300', '400', '500', '600', '700', '800', '900'],
+    variable: '--font-poppins',
+});
 
 export const metadata = {
     title: 'SmartPark | Find & Reserve Parking Space',
@@ -16,7 +23,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
-            <body className="min-h-screen flex flex-col">
+            <body className={`${poppins.className} min-h-screen flex flex-col`}>
                 <AntdRegistry>
                     <ConfigProvider theme={{
                         token: {
@@ -25,7 +32,7 @@ export default function RootLayout({ children }) {
                             colorLink: '#14b8a6',
                             colorLinkHover: '#0d9488',
                             borderRadius: 8,
-                            fontFamily: 'inherit',
+                            fontFamily: poppins.style.fontFamily,
                         },
                         components: {
                             Menu: {

@@ -77,28 +77,43 @@ export default function GlobalHeader() {
     ];
 
     return (
-        <Header className="custom-global-header px-6 md:px-12 flex items-center justify-between sticky top-0 z-50 h-16">
-            <div className="flex items-center cursor-pointer" onClick={() => router.push('/')}>
-                <Title level={3} className="text-brand-600 m-0 leading-none">Smart<span className="text-gray-900">Park</span></Title>
+        <Header
+            className="px-4 md:px-8 absolute top-0 left-0 w-full z-50 h-24 pt-4 border-0 flex items-center justify-between"
+            style={{ background: 'transparent' }}
+        >
+            {/* Left: Logo */}
+            <div className="flex flex-1 items-center cursor-pointer" onClick={() => router.push('/')}>
+                {/* Fallback to text if the image isn't named logo.jpg yet, but providing the img tag for the logo */}
+                <img src="/logo.png" alt="SmartPark Logo" className="h-12 md:h-16 w-auto object-contain drop-shadow-sm" />
             </div>
 
-            <div className="flex items-center gap-4">
-                <Link href="/about" className="hidden md:block relative group">
-                    <Button type="text" className={`font-medium transition-colors ${pathname === '/about' ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`}>
+            {/* Center: Navigation Links */}
+            <div className="flex-1 hidden md:flex items-center justify-center gap-8">
+                <Link href="/" className="relative group">
+                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
+                        Home
+                    </Button>
+                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-[#1363DF] transition-all duration-300 ${pathname === '/' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                </Link>
+                <Link href="/about" className="relative group">
+                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/about' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
                         About Us
                     </Button>
-                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-brand-500 transition-all duration-300 ${pathname === '/about' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-[#1363DF] transition-all duration-300 ${pathname === '/about' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
-                <Link href="/contact" className="hidden md:block relative group">
-                    <Button type="text" className={`font-medium transition-colors ${pathname === '/contact' ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`}>
+                <Link href="/contact" className="relative group">
+                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/contact' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
                         Contact Us
                     </Button>
-                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-brand-500 transition-all duration-300 ${pathname === '/contact' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-[#1363DF] transition-all duration-300 ${pathname === '/contact' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
+            </div>
 
+            {/* Right: Actions */}
+            <div className="flex flex-1 items-center justify-end gap-4">
                 {pathname !== '/search' && (
                     <Link href="/search">
-                        <Button type="text" className="font-medium hidden sm:flex items-center text-brand-600 hover:bg-brand-50">
+                        <Button type="primary" className="font-semibold hidden lg:flex items-center rounded-full px-6 h-10 shadow-md bg-[#1363DF] hover:bg-[#0f4eb3] border-none">
                             Find Parking
                         </Button>
                     </Link>
@@ -106,14 +121,14 @@ export default function GlobalHeader() {
 
                 {!mounted ? null : user ? (
                     <Dropdown menu={{ items: userItems }} placement="bottomRight" trigger={['click']}>
-                        <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 pr-3 rounded-full border border-gray-100 transition-colors">
-                            <Avatar size="small" icon={<UserOutlined />} className="bg-brand-500" />
-                            <span className="text-sm font-medium text-gray-700 hidden sm:block">{user.name}</span>
+                        <div className="flex items-center gap-2 cursor-pointer hover:bg-white/50 p-1.5 pr-4 rounded-full border border-gray-300/50 backdrop-blur-md transition-colors shadow-sm bg-white/30">
+                            <Avatar size="small" icon={<UserOutlined />} className="bg-[#1363DF]" />
+                            <span className="text-sm font-bold text-[#0A1A3F] hidden sm:block">{user.name}</span>
                         </div>
                     </Dropdown>
                 ) : (
                     <Dropdown menu={{ items: unmountedOrNoUserItems }} placement="bottomRight" trigger={['click']}>
-                        <Button shape="circle" icon={<UserOutlined />} size="large" className="bg-gray-50 border-gray-200 text-gray-600 hover:text-brand-600 hover:border-brand-300" />
+                        <Button shape="circle" icon={<UserOutlined />} size="large" className="bg-white/30 backdrop-blur-md border-gray-300/50 text-[#0A1A3F] hover:text-[#1363DF] shadow-sm" />
                     </Dropdown>
                 )}
             </div>

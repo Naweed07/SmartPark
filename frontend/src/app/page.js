@@ -8,46 +8,104 @@ const { Title, Text, Paragraph } = Typography;
 
 export default function Home() {
     return (
-        <main className="min-h-screen bg-gray-50 overflow-hidden">
+        <main className="min-h-screen bg-soft-light overflow-hidden">
             {/* Hero Section */}
-            <div className="w-full bg-white px-6 py-24 md:py-32 text-center relative">
-                {/* Decorative background shapes */}
-                <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-                    <div className="absolute top-12 -right-24 w-96 h-96 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
-                </div>
+            <div className="w-full bg-[#E6EDF2] px-4 md:px-8 lg:px-12 py-16 md:py-24 relative overflow-hidden">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
 
-                <div className="relative z-10 max-w-6xl mx-auto">
-                    <Title level={1} className="text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight mb-6">
-                        Find Parking, <span className="text-brand-500">Instantly</span>
-                    </Title>
-                    <Paragraph className="text-xl md:text-2xl text-gray-500 mb-10 max-w-3xl mx-auto leading-relaxed">
-                        SmartPark connects drivers with unused parking spaces. Reserve a spot in seconds, or list your own driveway and start earning today.
-                    </Paragraph>
+                    {/* Left Content */}
+                    <div className="lg:col-span-6 flex flex-col gap-6 relative z-10">
+                        <Title level={1} className="text-4xl md:text-5xl lg:text-6xl font-[900] text-[#0A1A3F] leading-tight mb-2 tracking-tight">
+                            SmartPark: <br />
+                            <span className="text-[#1363DF] text-5xl"> The Future of Parking</span>
+                        </Title>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up">
-                        <Link href="/search">
+                        <Paragraph className="text-lg text-slate-600 max-w-lg mb-4">
+                            Connect with verified hosts for premium parking spots, or turn your empty driveway into a reliable source of passive income.
+                        </Paragraph>
+
+                        {/* Dark Blue Options Box (Premium Glassy) */}
+                        <div className="bg-[#0A1A3F] rounded-[2rem] p-6 md:p-8 shadow-[0_20px_50px_rgba(10,26,63,0.3)] relative overflow-hidden">
+                            {/* subtle decor inside box */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-[4rem] pointer-events-none"></div>
+                            <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-[#1363DF]/50 rounded-full blur-[40px] pointer-events-none"></div>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-br from-[#1363DF]/10 to-transparent pointer-events-none"></div>
+
+                            <h3 className="text-white text-xl md:text-2xl font-semibold mb-6 text-center relative z-10">
+                                Start Your Journey
+                            </h3>
+
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10 w-full">
+                                <Link href="/search" className="w-full sm:w-auto">
+                                    <Button
+                                        size="large"
+                                        icon={<SearchOutlined />}
+                                        className="w-full sm:w-auto h-14 px-8 text-lg font-semibold rounded-full hover:-translate-y-1 transition-all duration-300 flex items-center justify-center border border-white/20 bg-white/10 backdrop-blur-md shadow-[0_8px_32px_0_rgba(255,255,255,0.1)] text-white hover:bg-white/20 hover:border-white/40"
+                                    >
+                                        Find a Spot
+                                    </Button>
+                                </Link>
+                                <Link href="/register" className="w-full sm:w-auto">
+                                    <Button
+                                        size="large"
+                                        icon={<EnvironmentOutlined />}
+                                        className="w-full sm:w-auto h-14 px-8 text-lg font-semibold rounded-full hover:-translate-y-1 transition-all duration-300 flex items-center justify-center border border-[#1363DF] bg-[#1363DF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(19,99,223,0.4)] text-white hover:bg-[#1363DF] hover:border-blue-400"
+                                    >
+                                        List Your Space
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Light Blue Services Box (Glassy) */}
+                        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 md:p-8 flex flex-col xl:flex-row items-center xl:items-start justify-between gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mt-2">
+                            <div className="text-center xl:text-left">
+                                <h4 className="text-[#0A1A3F] font-extrabold text-lg mb-2">Join the SmartPark Network</h4>
+                                <p className="text-[#2C3E50] text-sm leading-relaxed max-w-sm m-0">
+                                    Experience a secure, cost-effective, and transparent parking ecosystem designed to empower drivers and property owners.
+                                </p>
+                            </div>
                             <Button
-                                type="primary"
-                                size="large"
-                                icon={<SearchOutlined />}
-                                className="h-14 px-8 text-lg font-semibold rounded-full shadow-lg shadow-brand-500/30 hover:-translate-y-1 transition-transform"
+                                className="bg-[#1363DF] border-none text-white hover:bg-[#0f4eb3] hover:text-white rounded-full px-8 h-12 font-semibold shadow-lg shadow-blue-500/30 whitespace-nowrap mt-2 xl:mt-0 transition-all hover:scale-105"
                             >
-                                Find a Spot
+                                Learn More
                             </Button>
-                        </Link>
-                        <Link href="/register">
-                            <Button
-                                size="large"
-                                icon={<EnvironmentOutlined />}
-                                className="h-14 px-8 text-lg font-semibold rounded-full border-2 border-brand-500 text-brand-600 bg-white hover:bg-brand-50 hover:text-brand-700 transition-colors"
-                            >
-                                List Your Space
-                            </Button>
-                        </Link>
+                        </div>
+                    </div>
+
+                    {/* Right Content Images Grid */}
+                    <div className="lg:col-span-6 flex flex-col gap-6 relative z-10">
+                        {/* Top Image: Car Landscape */}
+                        <div className="w-full h-[300px] md:h-[350px] lg:h-[400px] rounded-[2rem] overflow-hidden shadow-2xl relative bg-blue-100 group">
+                            <img
+                                src="/smartparkbannerHero.png"
+                                alt="SmartPark Parking"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            />
+                            {/* Subtle gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                        </div>
+
+                        {/* Bottom Sub-grid for map/abstract content */}
+                        <div className="w-full flex justify-start">
+                            <div className="w-full h-[200px] md:h-[250px] rounded-[2rem] overflow-hidden shadow-xl relative bg-[#DCE4ED] group flex items-center justify-center">
+                                <img
+                                    src="https://images.unsplash.com/photo-1506521781263-d8422e82f27a?q=80&w=1200&auto=format&fit=crop"
+                                    alt="Parking Top View"
+                                    className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+                                />
+                                {/* Play icon overlay linked to YouTube */}
+                                <a href="https://youtu.be/p3gGMSokWAE?si=hMHZloN7X_hwY_eS" target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                                        <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-[#0A1A3F] border-b-8 border-b-transparent ml-1"></div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
 
             {/* How It Works Section */}
             <div className="py-24 px-6 max-w-7xl mx-auto">
@@ -130,6 +188,11 @@ export default function Home() {
                 </div>
             </div>
 
+
+            {/* Why choose smartpark section start */}
+
+
+            {/* Why choose us section end */}
             {/* CTA Banner */}
             <div className="bg-brand-600 py-20 px-6 text-center">
                 <div className="max-w-4xl mx-auto">
