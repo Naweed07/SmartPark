@@ -83,8 +83,7 @@ export default function GlobalHeader() {
         >
             {/* Left: Logo */}
             <div className="flex flex-1 items-center cursor-pointer" onClick={() => router.push('/')}>
-                {/* Fallback to text if the image isn't named logo.jpg yet, but providing the img tag for the logo */}
-                <img src="/logo.png" alt="SmartPark Logo" className="h-12 md:h-16 w-auto object-contain drop-shadow-sm" />
+                <img src="/logo.png" alt="SmartPark Logo" className="h-12 md:h-16 rounded-lg w-auto object-contain drop-shadow-sm" />
             </div>
 
             {/* Center: Navigation Links */}
@@ -93,19 +92,19 @@ export default function GlobalHeader() {
                     <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
                         Home
                     </Button>
-                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-[#1363DF] transition-all duration-300 ${pathname === '/' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] transition-all duration-300 ${pathname === '/' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
                 <Link href="/about" className="relative group">
                     <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/about' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
                         About Us
                     </Button>
-                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-[#1363DF] transition-all duration-300 ${pathname === '/about' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] transition-all duration-300 ${pathname === '/about' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
                 <Link href="/contact" className="relative group">
                     <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/contact' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
                         Contact Us
                     </Button>
-                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-[#1363DF] transition-all duration-300 ${pathname === '/contact' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] transition-all duration-300 ${pathname === '/contact' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
             </div>
 
@@ -113,7 +112,7 @@ export default function GlobalHeader() {
             <div className="flex flex-1 items-center justify-end gap-4">
                 {pathname !== '/search' && (
                     <Link href="/search">
-                        <Button type="primary" className="font-semibold hidden lg:flex items-center rounded-full px-6 h-10 shadow-md bg-[#1363DF] hover:bg-[#0f4eb3] border-none">
+                        <Button type="primary" className="font-semibold hidden lg:flex items-center rounded-full px-6 h-10 shadow-md header-btn border-none">
                             Find Parking
                         </Button>
                     </Link>

@@ -10,14 +10,14 @@ export default function Home() {
     return (
         <main className="min-h-screen bg-soft-light overflow-hidden">
             {/* Hero Section */}
-            <div className="w-full bg-[#E6EDF2] px-4 md:px-8 lg:px-12 py-16 md:py-24 relative overflow-hidden">
+            <div className="w-full bg-[#E6EDF2] px-4 md:px-8 lg:px-12 py-20 md:py-24 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
 
                     {/* Left Content */}
                     <div className="lg:col-span-6 flex flex-col gap-6 relative z-10">
                         <Title level={1} className="text-4xl md:text-5xl lg:text-6xl font-[900] text-[#0A1A3F] leading-tight mb-2 tracking-tight">
                             SmartPark: <br />
-                            <span className="text-[#1363DF] text-5xl"> The Future of Parking</span>
+                            <span className="text-[#1363DF] text-6xl font-bold"> The Future of Parking</span>
                         </Title>
 
                         <Paragraph className="text-lg text-slate-600 max-w-lg mb-4">
@@ -49,7 +49,7 @@ export default function Home() {
                                     <Button
                                         size="large"
                                         icon={<EnvironmentOutlined />}
-                                        className="w-full sm:w-auto h-14 px-8 text-lg font-semibold rounded-full hover:-translate-y-1 transition-all duration-300 flex items-center justify-center border border-[#1363DF] bg-[#1363DF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(19,99,223,0.4)] text-white hover:bg-[#1363DF] hover:border-blue-400"
+                                        className="w-full sm:w-auto list-btn h-14 px-8 text-lg font-semibold rounded-full hover:-translate-y-1 transition-all duration-300 flex items-center justify-center border border-[#1363DF] bg-[#1363DF]/90 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(19,99,223,0.4)] text-white hover:bg-[#1363DF] hover:border-blue-400"
                                     >
                                         List Your Space
                                     </Button>
@@ -66,7 +66,7 @@ export default function Home() {
                                 </p>
                             </div>
                             <Button
-                                className="bg-[#1363DF] border-none text-white hover:bg-[#0f4eb3] hover:text-white rounded-full px-8 h-12 font-semibold shadow-lg shadow-blue-500/30 whitespace-nowrap mt-2 xl:mt-0 transition-all hover:scale-105"
+                                className="learn-more-btn rounded-2xl px-8 h-12 font-semibold shadow-lg shadow-blue-500/30 whitespace-nowrap mt-2 xl:mt-0 transition-all hover:scale-105 "
                             >
                                 Learn More
                             </Button>

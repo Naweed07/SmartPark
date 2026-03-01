@@ -18,3 +18,31 @@
 .bg-soft-light{
     background-color: #dcecf7;
 }
+
+.learn-more-btn{
+    color: #fff !important;
+    background-color: #0a1f44 !important;
+    padding:20px 20px !important;
+}
+
+.learn-more-btn:hover{
+    border: 1px solid #0a1f44 !important;
+}
+
+.header-btn{
+    background-color: #0a1f44 !important;
+    border: none !important;
+}
+
+.header-btn:hover{
+background-color:#0f4eb3 !important;
+}
+
+.list-btn{
+    background-color: transparent !important;
+    color: #fff !important;
+}
+
+.list-btn:hover{
+    border: 1px solid #3b82f6 !important;
+}
