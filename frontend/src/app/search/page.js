@@ -294,27 +294,27 @@ export default function SearchSpaces() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-[#f8fafc] md:bg-[#E6EDF2]/30 p-6 md:p-8">
             <Script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" strategy="lazyOnload" />
-            <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                    <Title level={2} className="m-0">Find Parking</Title>
+            <div className="max-w-7xl mx-auto pt-16">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                    <Title level={2} className="m-0 text-[#0A1A3F] font-extrabold tracking-tight">Find Parking</Title>
                     <div className="flex gap-4 w-full md:w-auto">
                         <Input
-                            prefix={<SearchOutlined />}
-                            placeholder="Search location (e.g., London)..."
+                            prefix={<SearchOutlined className="text-gray-400" />}
+                            placeholder="Enter destination or area..."
                             size="large"
-                            className="w-full md:w-64 rounded-lg"
+                            className="w-full md:w-80 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border-gray-200 focus:border-[#1363DF]"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onPressEnter={handleSearch}
                         />
-                        <Button type="primary" size="large" className="rounded-lg" onClick={handleSearch}>Search</Button>
+                        <Button type="primary" size="large" className="rounded-xl px-8 bg-[#1363DF] hover:!bg-[#0A1A3F] border-none shadow-md hover:shadow-lg transition-all font-semibold search-btn-s" onClick={handleSearch}>Search</Button>
                     </div>
                 </div>
 
                 {/* Interactive Leaflet Map */}
-                <div className="w-full h-[400px] bg-white rounded-2xl mb-8 border border-gray-100 shadow-sm relative z-0 overflow-hidden">
+                <div className="w-full h-[600px] bg-white rounded-[2rem] mb-12 border border-gray-100 shadow-[0_10px_40px_rgba(10,26,63,0.05)] relative z-0 overflow-hidden transform transition-all">
                     <MapWithNoSSR spaces={spaces} onBookSpace={showBookingModal} searchedLocation={searchedLocation} />
                 </div>
 
@@ -323,15 +323,15 @@ export default function SearchSpaces() {
                         <Col xs={24} sm={12} lg={8} key={space._id}>
                             <Card
                                 hoverable
-                                className="rounded-2xl overflow-hidden border-0 shadow-sm hover:shadow-xl transition-shadow h-full flex flex-col"
-                                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+                                className="rounded-[1.5rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-[0_20px_40px_rgba(10,26,63,0.08)] transition-all h-full flex flex-col group"
+                                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '1.5rem' }}
                             >
                                 <div className="flex justify-between items-start mb-4">
-                                    <Title level={4} className="m-0">{space.name}</Title>
+                                    <Title level={4} className="m-0 text-[#0A1A3F] font-bold leading-tight group-hover:text-[#1363DF] transition-colors">{space.name}</Title>
                                     <div className="flex flex-col items-end">
-                                        <Tag color="cyan" className="rounded-full px-3 py-1 font-semibold m-0">${space.rates.hourly}/1st hr</Tag>
+                                        <Tag className="rounded-full px-3 py-1 font-bold m-0 bg-[#1363DF]/10 text-[#1363DF] border-0">${space.rates.hourly}/1st hr</Tag>
                                         {(space.rates.customTiers && space.rates.customTiers.length > 0) && (
-                                            <div className="text-[10px] text-gray-500 mt-1 pr-1 font-medium bg-gray-50 px-2 py-0.5 rounded border border-gray-100 text-right w-full">
+                                            <div className="text-[10px] text-gray-500 mt-2 pr-1 font-medium bg-gray-50 px-2 py-0.5 rounded border border-gray-100 text-right w-full">
                                                 {space.rates.customTiers.map((t, i) => (
                                                     <div key={i}>{t.minHours}-{t.maxHours} hrs: ${t.rate}/hr</div>
                                                 ))}
@@ -340,16 +340,16 @@ export default function SearchSpaces() {
                                     </div>
                                 </div>
 
-                                <div className="text-gray-500 mb-4 flex items-start gap-2 flex-1">
-                                    <EnvironmentOutlined className="mt-1" />
+                                <div className="text-gray-500 mb-6 flex items-start gap-2 flex-1 font-medium">
+                                    <EnvironmentOutlined className="mt-1 text-[#1363DF]" />
                                     <span>{space.location.address}</span>
                                 </div>
 
-                                <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                                    <div className="text-sm text-gray-400">
-                                        Capacity: {space.capacity} slots
+                                <div className="flex justify-between items-center mt-auto pt-5 border-t border-gray-100">
+                                    <div className="text-sm text-gray-400 font-medium">
+                                        Capacity: <strong className="text-gray-600">{space.capacity}</strong> slots
                                     </div>
-                                    <Button type="primary" className="rounded-full px-6" onClick={() => showBookingModal(space)}>
+                                    <Button type="primary" className="rounded-full px-6 bg-[#1363DF] hover:!bg-[#0A1A3F] border-none shadow-md hover:shadow-lg booknow-btn transition-all font-semibold" onClick={() => showBookingModal(space)}>
                                         Book Now
                                     </Button>
                                 </div>
@@ -366,10 +366,10 @@ export default function SearchSpaces() {
                         // We conditionally hide the natural 'Confirm & Pay' button 
                         // if PayPal is selected, because PayPal brings its own buttons!
                         paymentMethod === 'PAYPAL' ? [
-                            <Button key="back" onClick={() => setIsModalVisible(false)}>Cancel</Button>
+                            <Button key="back" onClick={() => setIsModalVisible(false)} className="rounded-lg font-medium">Cancel</Button>
                         ] : [
-                            <Button key="back" onClick={() => setIsModalVisible(false)}>Cancel</Button>,
-                            <Button key="submit" type="primary" loading={bookingLoading} onClick={() => handleBook()}>
+                            <Button key="back" onClick={() => setIsModalVisible(false)} className="rounded-lg font-medium">Cancel</Button>,
+                            <Button key="submit" type="primary" loading={bookingLoading} onClick={() => handleBook()} className="bg-[#1363DF] hover:!bg-[#0A1A3F] border-none rounded-lg shadow-md transition-all font-semibold">
                                 Confirm & Pay
                             </Button>,
                         ]}

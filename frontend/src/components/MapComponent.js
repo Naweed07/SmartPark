@@ -133,8 +133,7 @@ export default function MapComponent({ spaces, onBookSpace, searchedLocation }) 
                                             ))}
                                         </div>
                                     )}
-
-                                    <Button size="small" type="primary" block className="mt-2" onClick={() => onBookSpace(space)}>Book</Button>
+                                    <Button size="small" type="primary" block className="mt-2 search-btn-s" onClick={() => onBookSpace(space)}>Book</Button>
                                 </div>
                             </Popup>
                         </Marker>
