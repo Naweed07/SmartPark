@@ -22,7 +22,9 @@
 .learn-more-btn{
     color: #fff !important;
     background-color: #0a1f44 !important;
-    padding:20px 20px !important;
+    padding:20px 25px !important;
+border-radius: 30px !important;
+font-weight: 700  !important;
 }
 
 .learn-more-btn:hover{
@@ -45,4 +47,26 @@ background-color:#0f4eb3 !important;
 
 .list-btn:hover{
     border: 1px solid #3b82f6 !important;
+}
+
+.txt-dark-blue {
+color: #0a1f44 !important;
+}
+
+.btn-dark-scndry{
+    color: #0a1f44 !important;
+    border-radius: 30px !important;
+    padding: 20px 30px !important;
+font-weight: 700 !important;
+}
+
+.btn-dark-scndry:hover{
+    background-color: transparent !important;
+    border: 1px solid #fff !important;
+color: #fff !important;
+}
+
+.btn-hero-scndry:hover{
+border: 1px solid #0a1f44 !important;
+color: #0a1f44 !important;
 }
