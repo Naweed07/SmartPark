@@ -69,8 +69,8 @@ export default function DriverDashboard() {
             key: 'spaceName',
             render: (text, record) => (
                 <div>
-                    <div className="font-semibold text-gray-800">{text || 'Deleted Space'}</div>
-                    <div className="text-xs text-gray-500">{record.spaceId?.location?.address || 'Unknown Address'}</div>
+                    <div className="font-semibold text-gray-800 dark:text-gray-200">{text || 'Deleted Space'}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{record.spaceId?.location?.address || 'Unknown Address'}</div>
                 </div>
             )
         },
@@ -96,13 +96,13 @@ export default function DriverDashboard() {
             title: 'Vehicle',
             dataIndex: 'vehicleNumber',
             key: 'vehicleNumber',
-            render: (val) => <Tag className="font-mono bg-gray-100">{val}</Tag>
+            render: (val) => <Tag className="font-mono bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200">{val}</Tag>
         },
         {
             title: 'Total Paid',
             dataIndex: 'totalAmount',
             key: 'totalAmount',
-            render: (val) => <strong className="text-teal-600">${val}</strong>
+            render: (val) => <strong className="text-[#1363DF] dark:text-[#3b82f6]">${val}</strong>
         },
         {
             title: 'Payment',
@@ -139,7 +139,7 @@ export default function DriverDashboard() {
                                 setSelectedBooking(record);
                                 setIsQrModalVisible(true);
                             }}
-                            className="bg-brand-500 hover:bg-brand-600 border-none shadow-sm"
+                            className="bg-[#1363DF] hover:!bg-[#0A1A3F] border-none shadow-sm dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb]"
                         >
                             View QR
                         </Button>
@@ -164,7 +164,7 @@ export default function DriverDashboard() {
                                     message.error('Location details not available for this space.');
                                 }
                             }}
-                            className="text-brand-600 border-brand-200 hover:border-brand-400 bg-brand-50 shadow-sm"
+                            className="text-[#1363DF] border-[#1363DF]/30 hover:border-[#1363DF] bg-[#1363DF]/5 shadow-sm dark:text-[#3b82f6] dark:border-[#3b82f6]/30 dark:hover:border-[#3b82f6] dark:bg-[#3b82f6]/10"
                         >
                             Navigate
                         </Button>
@@ -175,14 +175,14 @@ export default function DriverDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 py-10 px-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-10 px-6 transition-colors duration-300">
             <div className="max-w-6xl mx-auto">
                 <div className="mb-8">
-                    <Title level={2} className="m-0">My Dashboard</Title>
-                    <Text className="text-gray-500 text-lg">Manage your parking reservations and history.</Text>
+                    <Title level={2} className="m-0 dark:text-white transition-colors duration-300">My Dashboard</Title>
+                    <Text className="text-gray-500 dark:text-slate-400 text-lg transition-colors duration-300">Manage your parking reservations and history.</Text>
                 </div>
 
-                <Card className="rounded-2xl shadow-sm border-0 w-full overflow-hidden">
+                <Card className="rounded-2xl shadow-sm border-0 w-full overflow-hidden dark:bg-slate-800 transition-colors duration-300 dashboard-card">
                     <Table
                         columns={columns}
                         dataSource={bookings}
@@ -191,6 +191,7 @@ export default function DriverDashboard() {
                         pagination={{ pageSize: 10 }}
                         scroll={{ x: 'max-content' }}
                         locale={{ emptyText: "You haven't made any bookings yet." }}
+                        rowClassName="dark:hover:bg-slate-700/50 transition-colors"
                     />
                 </Card>
 
@@ -203,31 +204,32 @@ export default function DriverDashboard() {
                         setSelectedBooking(null);
                     }}
                     footer={[
-                        <Button key="close" onClick={() => setIsQrModalVisible(false)}>
+                        <Button key="close" onClick={() => setIsQrModalVisible(false)} className="dark:bg-slate-800 dark:text-white dark:border-slate-600">
                             Close
                         </Button>
                     ]}
                     centered
                 >
                     <div className="flex flex-col items-center justify-center p-6 text-center">
-                        <Text className="text-gray-500 mb-6 block max-w-sm">
+                        <Text className="text-gray-500 dark:text-slate-400 mb-6 block max-w-sm">
                             Show this QR code to the parking space owner when you arrive to check-in securely.
                         </Text>
 
                         {selectedBooking && (
-                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
                                 <QRCode
                                     value={selectedBooking._id}
                                     size={250}
-                                    color="#0f766e" // brand color
+                                    color="#0a1f44" // brand color
+                                    bgColor="transparent"
                                 />
                             </div>
                         )}
 
                         {selectedBooking && (
                             <div className="mt-6">
-                                <Title level={5} className="m-0 text-gray-800">{selectedBooking.spaceId?.name}</Title>
-                                <Text className="font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded text-sm mt-2 block">
+                                <Title level={5} className="m-0 text-gray-800 dark:text-gray-200">{selectedBooking.spaceId?.name}</Title>
+                                <Text className="font-mono text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded text-sm mt-2 block">
                                     ID: {selectedBooking._id}
                                 </Text>
                             </div>

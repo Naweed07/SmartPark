@@ -3,12 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 10, 26, 63;
+  --background-rgb: 248, 250, 252;
+}
+
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 15, 23, 42;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: #f0f2f5;
+  background: rgb(var(--background-rgb));
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

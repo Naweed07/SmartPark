@@ -58,6 +58,7 @@ color: #0a1f44 !important;
     border-radius: 30px !important;
     padding: 20px 30px !important;
 font-weight: 700 !important;
+background-color: #fff !important;
 }
 
 .btn-dark-scndry:hover{
@@ -74,4 +75,8 @@ color: #0a1f44 !important;
 .booknow-btn , .search-btn-s{
     background-color: #0a1f44  !important;
     color: #fff !important;
+}
+
+.txt-wht{
+    color:#fff !important;
 }

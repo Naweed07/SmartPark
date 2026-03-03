@@ -5,6 +5,7 @@ import { Layout, Button, Dropdown, Avatar, Typography } from 'antd';
 import { UserOutlined, DashboardOutlined, LogoutOutlined, LoginOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { ThemeToggle } from './ThemeToggle';
 
 const { Header } = Layout;
 const { Title } = Typography;
@@ -89,22 +90,22 @@ export default function GlobalHeader() {
             {/* Center: Navigation Links */}
             <div className="flex-1 hidden md:flex items-center justify-center gap-8">
                 <Link href="/" className="relative group">
-                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
+                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/' ? 'text-[#1363DF] dark:text-[#3b82f6]' : 'text-[#0A1A3F] dark:text-white hover:text-[#1363DF] dark:hover:text-[#3b82f6]'}`}>
                         Home
                     </Button>
-                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] transition-all duration-300 ${pathname === '/' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] dark:bg-white transition-all duration-300 ${pathname === '/' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
                 <Link href="/about" className="relative group">
-                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/about' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
+                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/about' ? 'text-[#1363DF] dark:text-[#3b82f6]' : 'text-[#0A1A3F] dark:text-white hover:text-[#1363DF] dark:hover:text-[#3b82f6]'}`}>
                         About Us
                     </Button>
-                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] transition-all duration-300 ${pathname === '/about' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] dark:bg-white transition-all duration-300 ${pathname === '/about' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
                 <Link href="/contact" className="relative group">
-                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/contact' ? 'text-[#1363DF]' : 'text-[#0A1A3F] hover:text-[#1363DF]'}`}>
+                    <Button type="text" className={`font-semibold text-base transition-colors hover:bg-transparent ${pathname === '/contact' ? 'text-[#1363DF] dark:text-[#3b82f6]' : 'text-[#0A1A3F] dark:text-white hover:text-[#1363DF] dark:hover:text-[#3b82f6]'}`}>
                         Contact Us
                     </Button>
-                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] transition-all duration-300 ${pathname === '/contact' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
+                    <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 h-0.5 bg-[#0a1f44] dark:bg-white transition-all duration-300 ${pathname === '/contact' ? 'w-3/4' : 'w-0 group-hover:w-3/4'}`}></div>
                 </Link>
             </div>
 
@@ -120,16 +121,20 @@ export default function GlobalHeader() {
 
                 {!mounted ? null : user ? (
                     <Dropdown menu={{ items: userItems }} placement="bottomRight" trigger={['click']}>
-                        <div className="flex items-center gap-2 cursor-pointer hover:bg-white/50 p-1.5 pr-4 rounded-full border border-gray-300/50 backdrop-blur-md transition-colors shadow-sm bg-white/30">
+                        <div className="flex items-center gap-2 cursor-pointer hover:bg-white/50 dark:hover:bg-slate-800/50 p-1.5 pr-4 rounded-full border border-gray-300/50 dark:border-slate-700/50 backdrop-blur-md transition-colors shadow-sm bg-white/30 dark:bg-slate-900/30">
                             <Avatar size="small" icon={<UserOutlined />} className="bg-[#1363DF]" />
-                            <span className="text-sm font-bold text-[#0A1A3F] hidden sm:block">{user.name}</span>
+                            <span className="text-sm font-bold text-[#0A1A3F] dark:text-slate-200 hidden sm:block">{user.name}</span>
                         </div>
                     </Dropdown>
                 ) : (
                     <Dropdown menu={{ items: unmountedOrNoUserItems }} placement="bottomRight" trigger={['click']}>
-                        <Button shape="circle" icon={<UserOutlined />} size="large" className="bg-white/30 backdrop-blur-md border-gray-300/50 text-[#0A1A3F] hover:text-[#1363DF] shadow-sm" />
+                        <div className="flex items-center gap-2 cursor-pointer hover:bg-white/50 dark:hover:bg-slate-800/50 p-1.5 pr-4 rounded-full border border-gray-300/50 dark:border-slate-700/50 backdrop-blur-md transition-colors shadow-sm bg-white/30 dark:bg-slate-900/30">
+                            <Avatar size="small" icon={<UserOutlined />} className="bg-gray-400 dark:bg-slate-600" />
+                            <span className="text-sm font-bold text-[#0A1A3F] dark:text-slate-200 hidden sm:block">Menu</span>
+                        </div>
                     </Dropdown>
                 )}
+                <ThemeToggle />
             </div>
         </Header>
     );

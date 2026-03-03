@@ -255,9 +255,9 @@ export default function OwnerDashboard() {
             key: 'rates',
             render: (_, record) => (
                 <div className="flex flex-col">
-                    <span>${record.rates.hourly}/1st hr</span>
+                    <span className="dark:text-gray-200">${record.rates.hourly}/1st hr</span>
                     {(record.rates.customTiers && record.rates.customTiers.length > 0) && (
-                        <span className="text-xs text-gray-500">+{record.rates.customTiers.length} custom tiers</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">+{record.rates.customTiers.length} custom tiers</span>
                     )}
                 </div>
             )
@@ -290,7 +290,7 @@ export default function OwnerDashboard() {
         { title: 'Driver', dataIndex: 'driverName', key: 'driverName' },
         { title: 'Vehicle', dataIndex: 'vehicleNumber', key: 'vehicleNumber' },
         { title: 'Phone', dataIndex: 'driverPhone', key: 'driverPhone' },
-        { title: 'Revenue', dataIndex: 'totalAmount', key: 'totalAmount', render: (val) => <strong className="text-teal-600">${val}</strong> },
+        { title: 'Revenue', dataIndex: 'totalAmount', key: 'totalAmount', render: (val) => <strong className="text-[#1363DF] dark:text-[#3b82f6]">${val}</strong> },
         {
             title: 'Payment',
             key: 'paymentStatus',
@@ -313,10 +313,10 @@ export default function OwnerDashboard() {
     ];
 
     return (
-        <Layout className="min-h-screen">
-            <Sider breakpoint="lg" collapsedWidth="0" className="bg-white shadow-xl z-10" width={250}>
+        <Layout className="min-h-screen transition-colors duration-300">
+            <Sider breakpoint="lg" collapsedWidth="0" className="bg-white dark:bg-slate-900 shadow-xl z-10 transition-colors duration-300 sidebar-dark" width={250}>
                 <div className="p-6">
-                    <Title level={3} className="text-brand-600 m-0">Smart<span className="text-gray-900">Park</span></Title>
+                    <Title level={3} className="text-[#1363DF] dark:text-[#3b82f6] m-0">Smart<span className="text-gray-900 dark:text-white transition-colors duration-300">Park</span></Title>
                 </div>
                 <Menu
                     mode="inline"
@@ -334,59 +334,59 @@ export default function OwnerDashboard() {
                 />
             </Sider>
 
-            <Layout>
-                <Header className="bg-white px-8 flex items-center justify-between shadow-sm">
-                    <Title level={4} className="m-0">Owner Dashboard</Title>
+            <Layout className="bg-transparent">
+                <Header className="bg-white dark:bg-slate-900 px-8 flex items-center justify-between shadow-sm transition-colors duration-300 border-b border-gray-100 dark:border-slate-800">
+                    <Title level={4} className="m-0 dark:text-white transition-colors duration-300">Owner Dashboard</Title>
                     <div className="flex items-center gap-4">
-                        <span className="font-medium">Welcome!</span>
+                        <span className="font-medium dark:text-slate-300 transition-colors duration-300">Welcome!</span>
                     </div>
                 </Header>
 
-                <Content className="p-8 bg-gray-50">
+                <Content className="p-8 bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
                     {activeMenu === '1' ? (
                         <>
                             <Row gutter={[24, 24]} className="mb-8">
                                 <Col xs={24} sm={8}>
-                                    <Card className="rounded-2xl shadow-sm border-0">
-                                        <Statistic title="Total Spaces Listed" value={spaces.length} valueStyle={{ color: '#14b8a6' }} />
+                                    <Card className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card">
+                                        <Statistic title={<span className="dark:text-slate-400">Total Spaces Listed</span>} value={spaces.length} valueStyle={{ color: '#14b8a6' }} />
                                     </Card>
                                 </Col>
                                 <Col xs={24} sm={8}>
-                                    <Card className="rounded-2xl shadow-sm border-0">
-                                        <Statistic title="Active Bookings" value={metrics.activeBookings} valueStyle={{ color: '#3f83f8' }} />
+                                    <Card className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card">
+                                        <Statistic title={<span className="dark:text-slate-400">Active Bookings</span>} value={metrics.activeBookings} valueStyle={{ color: '#3b82f6' }} />
                                     </Card>
                                 </Col>
                                 <Col xs={24} sm={8}>
-                                    <Card className="rounded-2xl shadow-sm border-0">
-                                        <Statistic title="Total Revenue" value={metrics.totalRevenue} prefix="$" valueStyle={{ color: '#10b981' }} />
+                                    <Card className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card">
+                                        <Statistic title={<span className="dark:text-slate-400">Total Revenue</span>} value={metrics.totalRevenue} prefix="$" valueStyle={{ color: '#10b981' }} />
                                     </Card>
                                 </Col>
                             </Row>
 
                             <Card
-                                className="rounded-2xl shadow-sm border-0"
-                                title={<Title level={4} className="m-0 pt-2">My Parking Spaces</Title>}
-                                extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setEditingSpaceId(null); setIsModalVisible(true); }} className="rounded-lg">Add New Space</Button>}
+                                className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card"
+                                title={<Title level={4} className="m-0 pt-2 dark:text-white transition-colors duration-300">My Parking Spaces</Title>}
+                                extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setEditingSpaceId(null); setIsModalVisible(true); }} className="rounded-lg bg-[#1363DF] hover:!bg-[#0A1A3F] dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb]">Add New Space</Button>}
                             >
-                                <Table dataSource={spaces} columns={columns} rowKey="_id" pagination={{ pageSize: 5 }} scroll={{ x: 'max-content' }} />
+                                <Table dataSource={spaces} columns={columns} rowKey="_id" pagination={{ pageSize: 5 }} scroll={{ x: 'max-content' }} rowClassName="dark:hover:bg-slate-700/50 transition-colors" />
                             </Card>
                         </>
                     ) : (
                         <Card
-                            className="rounded-2xl shadow-sm border-0"
-                            title={<Title level={4} className="m-0 pt-2">Incoming Reservations</Title>}
+                            className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card"
+                            title={<Title level={4} className="m-0 pt-2 dark:text-white transition-colors duration-300">Incoming Reservations</Title>}
                             extra={
                                 <Button
                                     type="primary"
                                     icon={<ScanOutlined />}
                                     onClick={() => setIsVerifyModalVisible(true)}
-                                    className="bg-brand-500 hover:bg-brand-600 border-none rounded-lg"
+                                    className="bg-[#1363DF] hover:!bg-[#0A1A3F] border-none rounded-lg shadow-sm dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb]"
                                 >
                                     Verify QR Check-In
                                 </Button>
                             }
                         >
-                            <Table dataSource={bookings} columns={bookingColumns} rowKey="_id" pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} />
+                            <Table dataSource={bookings} columns={bookingColumns} rowKey="_id" pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} rowClassName="dark:hover:bg-slate-700/50 transition-colors" />
                         </Card>
                     )}
                 </Content>
@@ -414,7 +414,7 @@ export default function OwnerDashboard() {
                                     type="dashed"
                                     icon={<EnvironmentOutlined />}
                                     onClick={fetchCurrentLocationInfo}
-                                    className="flex-1 text-brand-600 border-brand-200 hover:border-brand-400 bg-brand-50"
+                                    className="flex-1 text-[#1363DF] border-[#1363DF]/30 hover:border-[#1363DF] bg-[#1363DF]/5 dark:text-[#3b82f6] dark:border-[#3b82f6]/30 dark:hover:border-[#3b82f6] dark:bg-[#3b82f6]/10"
                                 >
                                     Auto-Detect URL Location
                                 </Button>
@@ -423,7 +423,7 @@ export default function OwnerDashboard() {
                                     ghost
                                     icon={<GlobalOutlined />}
                                     onClick={() => setShowMapPicker(!showMapPicker)}
-                                    className="border-brand-300 text-brand-600"
+                                    className="border-[#1363DF]/40 text-[#1363DF] hover:!text-[#0A1A3F] hover:!border-[#0A1A3F] dark:border-[#3b82f6]/50 dark:text-[#3b82f6] dark:hover:!text-white dark:hover:!border-white"
                                 >
                                     {showMapPicker ? 'Hide Map' : 'Pin on Map'}
                                 </Button>
@@ -431,8 +431,8 @@ export default function OwnerDashboard() {
 
                             {/* Show the interactive Map Picker exactly when requested */}
                             {showMapPicker && (
-                                <div className="mt-2 p-3 bg-gray-50 rounded-xl border border-gray-100 shadow-inner">
-                                    <p className="text-sm text-gray-500 mb-2 font-medium">Select Pin Location:</p>
+                                <div className="mt-2 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-inner">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 font-medium">Select Pin Location:</p>
                                     <LocationPickerMapNoSSR
                                         initialPosition={form.getFieldValue('lat') ? { lat: form.getFieldValue('lat'), lng: form.getFieldValue('lng') } : null}
                                         onConfirm={handleMapLocationSelect}
@@ -459,11 +459,11 @@ export default function OwnerDashboard() {
                     </Row>
 
                     {/* Dynamic Custom Tiers Form List */}
-                    <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium text-gray-700">Custom Pricing Tiers (Optional)</span>
+                            <span className="font-medium text-gray-700 dark:text-gray-200">Custom Pricing Tiers (Optional)</span>
                         </div>
-                        <p className="text-xs text-gray-500 mb-4">Define special rates for extended parking durations (e.g. Hrs 2-5 = $8/hr)</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Define special rates for extended parking durations (e.g. Hrs 2-5 = $8/hr)</p>
 
                         <Form.List name="customTiers">
                             {(fields, { add, remove }) => (
@@ -492,7 +492,7 @@ export default function OwnerDashboard() {
                                         </Row>
                                     ))}
                                     <Form.Item className="mb-0 mt-2">
-                                        <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} className="border-brand-200 text-brand-600 hover:text-brand-700 hover:border-brand-400">
+                                        <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} className="border-[#1363DF]/30 text-[#1363DF] hover:!text-[#0A1A3F] hover:!border-[#0A1A3F] dark:border-[#3b82f6]/50 dark:text-[#3b82f6] dark:hover:!text-white dark:hover:!border-white">
                                             Add Custom Tier
                                         </Button>
                                     </Form.Item>
@@ -502,11 +502,11 @@ export default function OwnerDashboard() {
                     </div>
 
                     <Form.Item name="rules" label="Rules & Restrictions">
-                        <Input.TextArea placeholder="e.g. No large trucks, open 24/7" rows={3} />
+                        <Input.TextArea placeholder="e.g. No large trucks, open 24/7" rows={3} className="dark:bg-slate-800 dark:border-slate-700 dark:placeholder-gray-500 dark:text-white" />
                     </Form.Item>
                     <Form.Item className="mb-0 text-right">
-                        <Button onClick={closeModal} className="mr-2">Cancel</Button>
-                        <Button type="primary" htmlType="submit" loading={loading}>{editingSpaceId ? 'Update Space' : 'Save Space'}</Button>
+                        <Button onClick={closeModal} className="mr-2 dark:bg-slate-800 dark:text-white dark:border-slate-600">Cancel</Button>
+                        <Button type="primary" htmlType="submit" loading={loading} className="bg-[#1363DF] hover:!bg-[#0A1A3F] border-none dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb]">{editingSpaceId ? 'Update Space' : 'Save Space'}</Button>
                     </Form.Item>
                 </Form>
             </Modal>
@@ -514,8 +514,8 @@ export default function OwnerDashboard() {
             {/* QR Scanner / Verify Modal */}
             <Modal
                 title={
-                    <div className="flex items-center gap-2 text-gray-800">
-                        <ScanOutlined className="text-brand-500 text-xl" />
+                    <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200">
+                        <ScanOutlined className="text-[#1363DF] dark:text-[#3b82f6] text-xl" />
                         <span>Verify Driver Check-In</span>
                     </div>
                 }
@@ -525,7 +525,7 @@ export default function OwnerDashboard() {
                 centered
             >
                 <div className="py-4">
-                    <p className="text-gray-500 mb-6">
+                    <p className="text-gray-500 dark:text-gray-400 mb-6">
                         If a driver arrives, ask them to show you their Booking QR code via their Dashboard.
                         Enter the associated Booking ID here to officially check them into the space.
                     </p>
@@ -534,7 +534,7 @@ export default function OwnerDashboard() {
                         size="large"
                         value={verifyBookingId}
                         onChange={(e) => setVerifyBookingId(e.target.value)}
-                        className="mb-4 font-mono text-center tracking-wider bg-gray-50 border-gray-200"
+                        className="mb-4 font-mono text-center tracking-wider bg-gray-50 border-gray-200 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     />
                     <Button
                         type="primary"
@@ -542,7 +542,7 @@ export default function OwnerDashboard() {
                         block
                         loading={verifyLoading}
                         onClick={handleVerifySubmit}
-                        className="bg-brand-500 hover:bg-brand-600 border-none font-semibold h-12"
+                        className="bg-[#1363DF] hover:!bg-[#0A1A3F] border-none shadow-sm dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb] font-semibold h-12"
                     >
                         Verify & Check-In Driver
                     </Button>

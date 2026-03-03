@@ -45,11 +45,11 @@ export default function Register() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <Card className="w-full max-w-md shadow-xl border-0 rounded-2xl overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+            <Card className="w-full max-w-md shadow-xl border-0 rounded-2xl overflow-hidden dark:bg-slate-800 transition-colors duration-300">
                 <div className="text-center mb-8">
-                    <Title level={2} className="text-gray-900 mb-2">Create Account</Title>
-                    <Text className="text-gray-500">Join SmartPark today</Text>
+                    <Title level={2} className="text-gray-900 dark:text-white mb-2 transition-colors duration-300">Create Account</Title>
+                    <Text className="text-gray-500 dark:text-slate-400 transition-colors duration-300">Join SmartPark today</Text>
                 </div>
 
                 <Form
@@ -63,7 +63,7 @@ export default function Register() {
                         name="name"
                         rules={[{ required: true, message: 'Please input your Name!' }]}
                     >
-                        <Input prefix={<UserOutlined className="text-gray-400" />} placeholder="Full Name" className="rounded-lg" />
+                        <Input prefix={<UserOutlined className="text-gray-400 dark:text-gray-500" />} placeholder="Full Name" className="rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-gray-400" />
                     </Form.Item>
 
                     <Form.Item
@@ -73,7 +73,7 @@ export default function Register() {
                             { type: 'email', message: 'Please enter a valid email!' }
                         ]}
                     >
-                        <Input prefix={<MailOutlined className="text-gray-400" />} placeholder="Email Address" className="rounded-lg" />
+                        <Input prefix={<MailOutlined className="text-gray-400 dark:text-gray-500" />} placeholder="Email Address" className="rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-gray-400" />
                     </Form.Item>
 
                     <Form.Item
@@ -84,27 +84,27 @@ export default function Register() {
                         ]}
                     >
                         <Input.Password
-                            prefix={<LockOutlined className="text-gray-400" />}
+                            prefix={<LockOutlined className="text-gray-400 dark:text-gray-500" />}
                             placeholder="Password"
-                            className="rounded-lg"
+                            className="rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-gray-400"
                         />
                     </Form.Item>
 
                     <Form.Item name="role" rules={[{ required: true }]}>
-                        <Select>
+                        <Select popupClassName="dark:bg-slate-800" className="dark:text-white">
                             <Select.Option value="DRIVER">I am a Driver (Looking for spaces)</Select.Option>
                             <Select.Option value="OWNER">I am an Owner (Listing spaces)</Select.Option>
                         </Select>
                     </Form.Item>
 
                     <Form.Item>
-                        <Button type="primary" htmlType="submit" className="w-full h-12 text-lg font-semibold rounded-lg shadow-md hover:shadow-lg transition-all" loading={loading}>
+                        <Button type="primary" htmlType="submit" className="w-full h-12 text-lg font-semibold rounded-lg shadow-md hover:shadow-lg transition-all bg-[#1363DF] hover:!bg-[#0A1A3F] border-none dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb]" loading={loading}>
                             Sign Up
                         </Button>
                     </Form.Item>
 
-                    <div className="text-center text-gray-500 mt-4">
-                        Already have an account? <Link href="/login" className="text-brand-600 hover:text-brand-500 font-medium">Log in</Link>
+                    <div className="text-center text-gray-500 dark:text-slate-400 mt-4 transition-colors">
+                        Already have an account? <Link href="/login" className="text-[#1363DF] hover:text-[#0A1A3F] dark:text-[#3b82f6] dark:hover:text-[#60a5fa] font-medium transition-colors">Log in</Link>
                     </div>
                 </Form>
             </Card>
