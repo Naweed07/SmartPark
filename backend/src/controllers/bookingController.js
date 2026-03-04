@@ -205,7 +205,13 @@ const getOwnerMetrics = async (req, res) => {
         },
         {
             $group: {
-                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                // Adjust UTC to local time (Sri Lanka +05:30 = 19800000 ms) before grouping by day
+                _id: {
+                    $dateToString: {
+                        format: "%Y-%m-%d",
+                        date: { $add: ["$createdAt", 19800000] }
+                    }
+                },
                 revenue: { $sum: "$totalAmount" }
             }
         },
@@ -219,7 +225,10 @@ const getOwnerMetrics = async (req, res) => {
     for (let i = 0; i < daysToAggr; i++) {
         const d = new Date(startDate);
         d.setDate(d.getDate() + i);
-        const dateString = d.toISOString().split('T')[0];
+        // We must artificially add the offset to the local JS date before stringifying to match the Mongo output
+        const localD = new Date(d.getTime() + 19800000);
+        const dateString = localD.toISOString().split('T')[0];
+
         const match = revenueByDayResult.find(r => r._id === dateString);
         revenueByDay.push({
             date: dateString,

@@ -29,6 +29,12 @@ const parkingSpaceSchema = mongoose.Schema({
         }],
         daily: { type: Number, required: true },
     },
+    dynamicPricing: {
+        isDynamic: { type: Boolean, default: false },
+        peakStartTime: { type: String, default: '00:00' }, // "HH:mm" format
+        peakEndTime: { type: String, default: '00:00' },
+        peakMultiplier: { type: Number, default: 1.0 }, // e.g. 1.5x price during peak
+    },
     rules: {
         type: String,
     },

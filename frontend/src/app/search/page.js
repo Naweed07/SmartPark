@@ -18,6 +18,101 @@ const MapWithNoSSR = dynamic(() => import('../../components/MapComponent'), {
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
+const calculateBookingPrice = (space, range) => {
+    if (!space) {
+        return { totalAmount: 0, appliedRateDescription: '', exactHours: 0, bookedHours: 0, peakMinutes: 0, isDynamicTriggered: false };
+    }
+
+    // Default fallback when no range is selected yet
+    if (!range || range.length !== 2) {
+        return {
+            totalAmount: space.rates.hourly,
+            appliedRateDescription: `Base Rate ($${space.rates.hourly}/hr)`,
+            exactHours: 0,
+            bookedHours: 1,
+            peakMinutes: 0,
+            isDynamicTriggered: false
+        };
+    }
+
+    const exactHours = range[1].diff(range[0], 'minutes') / 60;
+    const bookedHours = Math.max(1, Math.ceil(exactHours));
+
+    let totalAmount = space.rates.hourly;
+    let appliedRateDescription = `Base Rate ($${space.rates.hourly}/hr)`;
+
+    if (bookedHours > 1) {
+        let matchedTier = null;
+        if (space.rates.customTiers && space.rates.customTiers.length > 0) {
+            matchedTier = space.rates.customTiers.find(tier =>
+                bookedHours >= tier.minHours && bookedHours <= tier.maxHours
+            );
+        }
+
+        if (matchedTier) {
+            totalAmount = bookedHours * matchedTier.rate;
+            appliedRateDescription = `Tier: ${matchedTier.minHours}-${matchedTier.maxHours} hrs ($${matchedTier.rate}/hr)`;
+        } else {
+            totalAmount = bookedHours * space.rates.hourly;
+        }
+    }
+
+    let baseAmountBeforePeak = totalAmount;
+    let peakMinutes = 0;
+    let isDynamicTriggered = false;
+
+    if (space.dynamicPricing?.isDynamic && space.dynamicPricing.peakStartTime && space.dynamicPricing.peakEndTime) {
+        const startH = parseInt(space.dynamicPricing.peakStartTime.split(':')[0], 10);
+        const startM = parseInt(space.dynamicPricing.peakStartTime.split(':')[1], 10);
+        const endH = parseInt(space.dynamicPricing.peakEndTime.split(':')[0], 10);
+        const endM = parseInt(space.dynamicPricing.peakEndTime.split(':')[1], 10);
+
+        let currentWalker = range[0].clone();
+        while (currentWalker.isBefore(range[1])) {
+            const currentH = currentWalker.hour();
+            const currentM = currentWalker.minute();
+
+            const currentAbsolute = currentH * 60 + currentM;
+            const peakStartAbsolute = startH * 60 + startM;
+            const peakEndAbsolute = endH * 60 + endM;
+
+            let isPeak = false;
+            if (peakStartAbsolute < peakEndAbsolute) {
+                isPeak = currentAbsolute >= peakStartAbsolute && currentAbsolute < peakEndAbsolute;
+            } else {
+                isPeak = currentAbsolute >= peakStartAbsolute || currentAbsolute < peakEndAbsolute;
+            }
+
+            if (isPeak) {
+                peakMinutes++;
+            }
+
+            currentWalker = currentWalker.add(1, 'minute');
+        }
+
+        if (peakMinutes > 0) {
+            isDynamicTriggered = true;
+            const peakHoursDecimal = peakMinutes / 60;
+            const actualHoursForAvg = exactHours > 0 ? exactHours : 1;
+            const baseHourlyRateEquivalent = baseAmountBeforePeak / actualHoursForAvg;
+
+            const peakSurcharge = (baseHourlyRateEquivalent * peakHoursDecimal * space.dynamicPricing.peakMultiplier) - (baseHourlyRateEquivalent * peakHoursDecimal);
+
+            totalAmount += peakSurcharge;
+            appliedRateDescription += ` + Peak Surcharge (${peakHoursDecimal.toFixed(1)} hrs @ ${space.dynamicPricing.peakMultiplier}x)`;
+        }
+    }
+
+    return {
+        totalAmount: Math.round(totalAmount * 100) / 100,
+        appliedRateDescription,
+        exactHours,
+        bookedHours,
+        peakMinutes,
+        isDynamicTriggered
+    };
+};
+
 export default function SearchSpaces() {
     const [spaces, setSpaces] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -169,27 +264,7 @@ export default function SearchSpaces() {
 
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-        const exactHours = bookingRange[1].diff(bookingRange[0], 'minutes') / 60;
-        const bookedHours = Math.max(1, Math.ceil(exactHours));
-
-        let totalAmount = selectedSpace.rates.hourly;
-        let appliedRateDescription = `Base Rate ($${selectedSpace.rates.hourly}/hr)`;
-
-        if (bookedHours > 1) {
-            let matchedTier = null;
-            if (selectedSpace.rates.customTiers && selectedSpace.rates.customTiers.length > 0) {
-                matchedTier = selectedSpace.rates.customTiers.find(tier =>
-                    bookedHours >= tier.minHours && bookedHours <= tier.maxHours
-                );
-            }
-
-            if (matchedTier) {
-                totalAmount = bookedHours * matchedTier.rate;
-                appliedRateDescription = `Tier: ${matchedTier.minHours}-${matchedTier.maxHours} hrs ($${matchedTier.rate}/hr)`;
-            } else {
-                totalAmount = bookedHours * selectedSpace.rates.hourly;
-            }
-        }
+        const { exactHours, bookedHours, totalAmount, appliedRateDescription } = calculateBookingPrice(selectedSpace, bookingRange);
 
         // If paying with PayPal, we DO NOT create the booking until PayPal is approved
         if (paymentMethod === 'PAYPAL' && !isPayPalApproved) {
@@ -384,8 +459,17 @@ export default function SearchSpaces() {
                         <div className="py-4 overflow-y-auto max-h-[70vh] px-2 -mx-2">
                             <div className="flex justify-between mb-4 text-base">
                                 <div className="flex flex-col w-full">
-                                    <div className="flex justify-between w-full dark:text-slate-300">
-                                        <span>Base Rate: <strong className="text-[#1363DF] dark:text-[#3b82f6]">${selectedSpace.rates.hourly}</strong> (1st hour)</span>
+                                    <div className="flex justify-between w-full dark:text-slate-300 items-start">
+                                        <div className="flex flex-col">
+                                            {bookingRange?.length === 2 ? (
+                                                <>
+                                                    <span className="text-lg">Price Estimate: <strong className="text-[#1363DF] dark:text-[#3b82f6]">${calculateBookingPrice(selectedSpace, bookingRange).totalAmount.toFixed(2)}</strong></span>
+                                                    <span className="text-xs text-gray-500 dark:text-slate-400 mt-1 font-medium">{calculateBookingPrice(selectedSpace, bookingRange).appliedRateDescription}</span>
+                                                </>
+                                            ) : (
+                                                <span>Base Rate: <strong className="text-[#1363DF] dark:text-[#3b82f6]">${selectedSpace.rates.hourly}</strong> (1st hour)</span>
+                                            )}
+                                        </div>
                                         <span className="text-right text-gray-600 dark:text-slate-400"><EnvironmentOutlined /> {selectedSpace.location.address}</span>
                                     </div>
 
@@ -399,6 +483,15 @@ export default function SearchSpaces() {
                                                 </div>
                                             ))}
                                             <div className="text-xs text-[#1363DF] dark:text-[#3b82f6] italic mt-2">*Discounted tier rate applies to the ENTIRE duration of your stay.</div>
+                                        </div>
+                                    )}
+
+                                    {selectedSpace.dynamicPricing?.isDynamic && (
+                                        <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-sm border border-purple-100 dark:border-purple-800/50 flex flex-col">
+                                            <span className="font-bold text-purple-700 dark:text-purple-400 block mb-1">⚡ Smart Dynamic Pricing Active</span>
+                                            <span className="text-purple-600 dark:text-purple-300">
+                                                If your reservation overlaps with peak hours <strong>({selectedSpace.dynamicPricing.peakStartTime} - {selectedSpace.dynamicPricing.peakEndTime})</strong>, those specific hours will be multiplied by <strong>{selectedSpace.dynamicPricing.peakMultiplier}x</strong>.
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -533,18 +626,7 @@ export default function SearchSpaces() {
                                         </div>
                                         {/* Dynamically calculate totalAmount again for the PayPal order creation */}
                                         {(() => {
-                                            const exactHours = bookingRange && bookingRange.length === 2 ? bookingRange[1].diff(bookingRange[0], 'minutes') / 60 : 0;
-                                            const bookedHours = Math.max(1, Math.ceil(exactHours));
-
-                                            let currentTotal = selectedSpace.rates.hourly;
-                                            if (bookedHours > 1) {
-                                                let matchedTier = null;
-                                                if (selectedSpace.rates.customTiers && selectedSpace.rates.customTiers.length > 0) {
-                                                    matchedTier = selectedSpace.rates.customTiers.find(tier => bookedHours >= tier.minHours && bookedHours <= tier.maxHours);
-                                                }
-                                                if (matchedTier) currentTotal = bookedHours * matchedTier.rate;
-                                                else currentTotal = bookedHours * selectedSpace.rates.hourly;
-                                            }
+                                            const currentTotal = calculateBookingPrice(selectedSpace, bookingRange).totalAmount;
 
                                             return (
                                                 <PayPalScriptProvider options={{ "client-id": "test", currency: "USD", intent: "capture" }}>

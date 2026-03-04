@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space, Select } from 'antd';
+import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space, Select, Switch, TimePicker } from 'antd';
 import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, ScanOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { getApiUrl } from '../../../utils/api';
 import dynamic from 'next/dynamic';
 import { ThemeToggle } from '../../../components/ThemeToggle';
+import dayjs from 'dayjs';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const LocationPickerMapNoSSR = dynamic(
@@ -30,6 +31,7 @@ export default function OwnerDashboard() {
     const [loading, setLoading] = useState(false);
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [editingSpaceId, setEditingSpaceId] = useState(null);
+    const [isDynamicEnabled, setIsDynamicEnabled] = useState(false);
     const [form] = Form.useForm();
     const router = useRouter();
 
@@ -100,6 +102,12 @@ export default function OwnerDashboard() {
                 customTiers: values.customTiers || [], // Send dynamic array to backend
                 daily: values.dailyRate || 0
             },
+            dynamicPricing: {
+                isDynamic: values.isDynamic || false,
+                peakStartTime: values.peakTimeRange ? values.peakTimeRange[0].format('HH:mm') : '00:00',
+                peakEndTime: values.peakTimeRange ? values.peakTimeRange[1].format('HH:mm') : '00:00',
+                peakMultiplier: values.peakMultiplier || 1.0
+            },
             rules: values.rules
         };
 
@@ -137,6 +145,7 @@ export default function OwnerDashboard() {
         setIsModalVisible(false);
         setShowMapPicker(false);
         setEditingSpaceId(null);
+        setIsDynamicEnabled(false);
         form.resetFields();
     };
 
@@ -180,8 +189,14 @@ export default function OwnerDashboard() {
             hourlyRate: space.rates.hourly,
             customTiers: space.rates.customTiers || [], // Pre-fill dynamic array
             dailyRate: space.rates.daily || 0,
+            isDynamic: space.dynamicPricing?.isDynamic || false,
+            peakTimeRange: (space.dynamicPricing?.peakStartTime && space.dynamicPricing?.peakEndTime)
+                ? [dayjs(space.dynamicPricing.peakStartTime, 'HH:mm'), dayjs(space.dynamicPricing.peakEndTime, 'HH:mm')]
+                : null,
+            peakMultiplier: space.dynamicPricing?.peakMultiplier || 1.0,
             rules: space.rules
         });
+        setIsDynamicEnabled(space.dynamicPricing?.isDynamic || false);
         setIsModalVisible(true);
     };
 
@@ -258,10 +273,13 @@ export default function OwnerDashboard() {
             title: 'Rates',
             key: 'rates',
             render: (_, record) => (
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                     <span className="dark:text-gray-200">${record.rates.hourly}/1st hr</span>
                     {(record.rates.customTiers && record.rates.customTiers.length > 0) && (
                         <span className="text-xs text-gray-500 dark:text-gray-400">+{record.rates.customTiers.length} custom tiers</span>
+                    )}
+                    {record.dynamicPricing?.isDynamic && (
+                        <Tag color="purple" className="w-fit">Peak: {record.dynamicPricing.peakMultiplier}x</Tag>
                     )}
                 </div>
             )
@@ -469,118 +487,157 @@ export default function OwnerDashboard() {
                 open={isModalVisible}
                 onCancel={closeModal}
                 footer={null}
+                style={{ top: 20 }}
             >
-                <Form form={form} layout="vertical" onFinish={handleSaveSpace} className="mt-4">
-                    <Form.Item name="name" label="Space Name" rules={[{ required: true }]}>
-                        <Input placeholder="e.g. Downtown Prime Garage" />
-                    </Form.Item>
+                <div className="py-2 overflow-y-auto max-h-[75vh] px-2 -mx-2">
+                    <Form form={form} layout="vertical" onFinish={handleSaveSpace} className="mt-2">
+                        <Form.Item name="name" label="Space Name" rules={[{ required: true }]}>
+                            <Input placeholder="e.g. Downtown Prime Garage" />
+                        </Form.Item>
 
-                    <Form.Item label="Full Address" required className="mb-4">
-                        <div className="flex flex-col gap-3 relative">
-                            <Form.Item name="address" rules={[{ required: true, message: 'Please provide the address' }]} noStyle>
-                                <Input placeholder="123 Main St, City" className="pr-10" />
-                            </Form.Item>
+                        <Form.Item label="Full Address" required className="mb-4">
+                            <div className="flex flex-col gap-3 relative">
+                                <Form.Item name="address" rules={[{ required: true, message: 'Please provide the address' }]} noStyle>
+                                    <Input placeholder="123 Main St, City" className="pr-10" />
+                                </Form.Item>
 
-                            <div className="flex gap-2">
-                                <Button
-                                    type="dashed"
-                                    icon={<EnvironmentOutlined />}
-                                    onClick={fetchCurrentLocationInfo}
-                                    className="flex-1 text-[#1363DF] border-[#1363DF]/30 hover:border-[#1363DF] bg-[#1363DF]/5 dark:text-[#3b82f6] dark:border-[#3b82f6]/30 dark:hover:border-[#3b82f6] dark:bg-[#3b82f6]/10"
-                                >
-                                    Auto-Detect URL Location
-                                </Button>
-                                <Button
-                                    type="primary"
-                                    ghost
-                                    icon={<GlobalOutlined />}
-                                    onClick={() => setShowMapPicker(!showMapPicker)}
-                                    className="border-[#1363DF]/40 text-[#1363DF] hover:!text-[#0A1A3F] hover:!border-[#0A1A3F] dark:border-[#3b82f6]/50 dark:text-[#3b82f6] dark:hover:!text-white dark:hover:!border-white"
-                                >
-                                    {showMapPicker ? 'Hide Map' : 'Pin on Map'}
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="dashed"
+                                        icon={<EnvironmentOutlined />}
+                                        onClick={fetchCurrentLocationInfo}
+                                        className="flex-1 text-[#1363DF] border-[#1363DF]/30 hover:border-[#1363DF] bg-[#1363DF]/5 dark:text-[#3b82f6] dark:border-[#3b82f6]/30 dark:hover:border-[#3b82f6] dark:bg-[#3b82f6]/10"
+                                    >
+                                        Auto-Detect URL Location
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        ghost
+                                        icon={<GlobalOutlined />}
+                                        onClick={() => setShowMapPicker(!showMapPicker)}
+                                        className="border-[#1363DF]/40 text-[#1363DF] hover:!text-[#0A1A3F] hover:!border-[#0A1A3F] dark:border-[#3b82f6]/50 dark:text-[#3b82f6] dark:hover:!text-white dark:hover:!border-white"
+                                    >
+                                        {showMapPicker ? 'Hide Map' : 'Pin on Map'}
+                                    </Button>
+                                </div>
+
+                                {/* Show the interactive Map Picker exactly when requested */}
+                                {showMapPicker && (
+                                    <div className="mt-2 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-inner">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 font-medium">Select Pin Location:</p>
+                                        <LocationPickerMapNoSSR
+                                            initialPosition={form.getFieldValue('lat') ? { lat: form.getFieldValue('lat'), lng: form.getFieldValue('lng') } : null}
+                                            onConfirm={handleMapLocationSelect}
+                                        />
+                                    </div>
+                                )}
+                                {/* Hidden fields to save the exact lat/lng coordinates to the database */}
+                                <Form.Item name="lat" hidden><Input /></Form.Item>
+                                <Form.Item name="lng" hidden><Input /></Form.Item>
+                            </div>
+                        </Form.Item>
+
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item name="capacity" label="Total Slots" rules={[{ required: true }]}>
+                                    <InputNumber min={1} className="w-full" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item name="hourlyRate" label="Base Rate (1st Hr)" rules={[{ required: true }]} tooltip="Base price for the first hour of parking">
+                                    <InputNumber min={0} className="w-full" prefix="$" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+
+                        {/* Dynamic Custom Tiers Form List */}
+                        <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="font-medium text-gray-700 dark:text-gray-200">Custom Pricing Tiers (Optional)</span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Define special rates for extended parking durations (e.g. Hrs 2-5 = $8/hr)</p>
+
+                            <Form.List name="customTiers">
+                                {(fields, { add, remove }) => (
+                                    <>
+                                        {fields.map(({ key, name, ...restField }) => (
+                                            <Row key={key} gutter={8} className="mb-2 flex items-center">
+                                                <Col span={7}>
+                                                    <Form.Item {...restField} name={[name, 'minHours']} rules={[{ required: true, message: 'Missing min' }]} className="mb-0">
+                                                        <InputNumber placeholder="Min Hrs" min={2} className="w-full" />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={2} className="text-center text-gray-400">to</Col>
+                                                <Col span={7}>
+                                                    <Form.Item {...restField} name={[name, 'maxHours']} rules={[{ required: true, message: 'Missing max' }]} className="mb-0">
+                                                        <InputNumber placeholder="Max Hrs" min={2} className="w-full" />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={6}>
+                                                    <Form.Item {...restField} name={[name, 'rate']} rules={[{ required: true, message: 'Missing rate' }]} className="mb-0">
+                                                        <InputNumber placeholder="Rate" min={0} prefix="$" className="w-full" />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={2} className="text-center">
+                                                    <MinusCircleOutlined onClick={() => remove(name)} className="text-red-400 hover:text-red-600 cursor-pointer" />
+                                                </Col>
+                                            </Row>
+                                        ))}
+                                        <Form.Item className="mb-0 mt-2">
+                                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} className="border-[#1363DF]/30 text-[#1363DF] hover:!text-[#0A1A3F] hover:!border-[#0A1A3F] dark:border-[#3b82f6]/50 dark:text-[#3b82f6] dark:hover:!text-white dark:hover:!border-white">
+                                                Add Custom Tier
+                                            </Button>
+                                        </Form.Item>
+                                    </>
+                                )}
+                            </Form.List>
+                        </div>
+
+                        {/* Smart Dynamic Pricing Block */}
+                        <div className="mb-4 p-4 bg-[#f8fafc] dark:bg-slate-800 rounded-xl border border-[#e2e8f0] dark:border-slate-700">
+                            <div className="flex justify-between items-center mb-2">
+                                <div>
+                                    <span className="font-semibold text-[#0A1A3F] dark:text-white flex items-center gap-2">
+                                        Smart Dynamic Pricing
+                                        <Tag color="blue" className="ml-2 border-0">Boost Revenue</Tag>
+                                    </span>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Automatically multiply your hourly rate during high-demand hours</p>
+                                </div>
+                                <Form.Item name="isDynamic" valuePropName="checked" className="mb-0">
+                                    <Switch checked={isDynamicEnabled} onChange={(checked) => setIsDynamicEnabled(checked)} />
+                                </Form.Item>
                             </div>
 
-                            {/* Show the interactive Map Picker exactly when requested */}
-                            {showMapPicker && (
-                                <div className="mt-2 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-inner">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 font-medium">Select Pin Location:</p>
-                                    <LocationPickerMapNoSSR
-                                        initialPosition={form.getFieldValue('lat') ? { lat: form.getFieldValue('lat'), lng: form.getFieldValue('lng') } : null}
-                                        onConfirm={handleMapLocationSelect}
-                                    />
+                            {isDynamicEnabled && (
+                                <div className="pt-4 mt-4 border-t border-gray-200 dark:border-slate-600">
+                                    <Row gutter={16}>
+                                        <Col span={14}>
+                                            <Form.Item name="peakTimeRange" label="Peak Hours" rules={[{ required: isDynamicEnabled, message: 'Select peak hours' }]}>
+                                                <TimePicker.RangePicker format="HH:mm" className="w-full" />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={10}>
+                                            <Form.Item name="peakMultiplier" label="Price Multiplier" rules={[{ required: isDynamicEnabled }]} initialValue={1.5}>
+                                                <InputNumber min={1.1} max={5.0} step={0.1} className="w-full" addonAfter="x" />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                    <p className="text-xs text-gray-400 dark:text-slate-500 leading-tight">
+                                        Example: If Base Rate is $10/hr and Multiplier is 1.5x, drivers booking during peak hours will automatically pay $15/hr for the overlapping time.
+                                    </p>
                                 </div>
                             )}
-                            {/* Hidden fields to save the exact lat/lng coordinates to the database */}
-                            <Form.Item name="lat" hidden><Input /></Form.Item>
-                            <Form.Item name="lng" hidden><Input /></Form.Item>
                         </div>
-                    </Form.Item>
 
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item name="capacity" label="Total Slots" rules={[{ required: true }]}>
-                                <InputNumber min={1} className="w-full" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="hourlyRate" label="Base Rate (1st Hr)" rules={[{ required: true }]} tooltip="Base price for the first hour of parking">
-                                <InputNumber min={0} className="w-full" prefix="$" />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    {/* Dynamic Custom Tiers Form List */}
-                    <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium text-gray-700 dark:text-gray-200">Custom Pricing Tiers (Optional)</span>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Define special rates for extended parking durations (e.g. Hrs 2-5 = $8/hr)</p>
-
-                        <Form.List name="customTiers">
-                            {(fields, { add, remove }) => (
-                                <>
-                                    {fields.map(({ key, name, ...restField }) => (
-                                        <Row key={key} gutter={8} className="mb-2 flex items-center">
-                                            <Col span={7}>
-                                                <Form.Item {...restField} name={[name, 'minHours']} rules={[{ required: true, message: 'Missing min' }]} className="mb-0">
-                                                    <InputNumber placeholder="Min Hrs" min={2} className="w-full" />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={2} className="text-center text-gray-400">to</Col>
-                                            <Col span={7}>
-                                                <Form.Item {...restField} name={[name, 'maxHours']} rules={[{ required: true, message: 'Missing max' }]} className="mb-0">
-                                                    <InputNumber placeholder="Max Hrs" min={2} className="w-full" />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={6}>
-                                                <Form.Item {...restField} name={[name, 'rate']} rules={[{ required: true, message: 'Missing rate' }]} className="mb-0">
-                                                    <InputNumber placeholder="Rate" min={0} prefix="$" className="w-full" />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={2} className="text-center">
-                                                <MinusCircleOutlined onClick={() => remove(name)} className="text-red-400 hover:text-red-600 cursor-pointer" />
-                                            </Col>
-                                        </Row>
-                                    ))}
-                                    <Form.Item className="mb-0 mt-2">
-                                        <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} className="border-[#1363DF]/30 text-[#1363DF] hover:!text-[#0A1A3F] hover:!border-[#0A1A3F] dark:border-[#3b82f6]/50 dark:text-[#3b82f6] dark:hover:!text-white dark:hover:!border-white">
-                                            Add Custom Tier
-                                        </Button>
-                                    </Form.Item>
-                                </>
-                            )}
-                        </Form.List>
-                    </div>
-
-                    <Form.Item name="rules" label="Rules & Restrictions">
-                        <Input.TextArea placeholder="e.g. No large trucks, open 24/7" rows={3} className="dark:bg-slate-800 dark:border-slate-700 dark:placeholder-gray-500 dark:text-white" />
-                    </Form.Item>
-                    <Form.Item className="mb-0 text-right">
-                        <Button onClick={closeModal} className="mr-2 dark:bg-slate-800 dark:text-white dark:border-slate-600">Cancel</Button>
-                        <Button type="primary" htmlType="submit" loading={loading} className="bg-[#1363DF] hover:!bg-[#0A1A3F] border-none dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb]">{editingSpaceId ? 'Update Space' : 'Save Space'}</Button>
-                    </Form.Item>
-                </Form>
+                        <Form.Item name="rules" label="Rules & Restrictions">
+                            <Input.TextArea placeholder="e.g. No large trucks, open 24/7" rows={3} className="dark:bg-slate-800 dark:border-slate-700 dark:placeholder-gray-500 dark:text-white" />
+                        </Form.Item>
+                        <Form.Item className="mb-0 text-right">
+                            <Button onClick={closeModal} className="mr-2 dark:bg-slate-800 dark:text-white dark:border-slate-600">Cancel</Button>
+                            <Button type="primary" htmlType="submit" loading={loading} className="bg-[#1363DF] hover:!bg-[#0A1A3F] border-none dark:bg-[#3b82f6] dark:hover:!bg-[#2563eb]">{editingSpaceId ? 'Update Space' : 'Save Space'}</Button>
+                        </Form.Item>
+                    </Form>
+                </div>
             </Modal>
 
             {/* QR Scanner / Verify Modal */}

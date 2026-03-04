@@ -176,24 +176,26 @@ export default function DriverDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-10 px-6 transition-colors duration-300">
-            <div className="max-w-6xl mx-auto">
+            <div className="w-[80vw] max-w-[1600px] mx-auto">
                 <div className="mb-8">
                     <Title level={2} className="m-0 dark:text-white transition-colors duration-300">My Dashboard</Title>
                     <Text className="text-gray-500 dark:text-slate-400 text-lg transition-colors duration-300">Manage your parking reservations and history.</Text>
                 </div>
 
-                <Card className="rounded-2xl shadow-sm border-0 w-full overflow-hidden dark:bg-slate-800 transition-colors duration-300 dashboard-card">
-                    <Table
-                        columns={columns}
-                        dataSource={bookings}
-                        rowKey="_id"
-                        loading={loading}
-                        pagination={{ pageSize: 10 }}
-                        scroll={{ x: 'max-content' }}
-                        locale={{ emptyText: "You haven't made any bookings yet." }}
-                        rowClassName="dark:hover:bg-slate-700/50 transition-colors"
-                    />
-                </Card>
+                <div className="w-full overflow-x-auto">
+                    <Card className="rounded-2xl shadow-sm border-0 min-w-full dark:bg-slate-800 transition-colors duration-300 dashboard-card">
+                        <Table
+                            columns={columns}
+                            dataSource={bookings}
+                            rowKey="_id"
+                            loading={loading}
+                            pagination={{ pageSize: 10 }}
+                            scroll={{ x: 'max-content' }}
+                            locale={{ emptyText: "You haven't made any bookings yet." }}
+                            rowClassName="dark:hover:bg-slate-700/50 transition-colors"
+                        />
+                    </Card>
+                </div>
 
                 {/* QR Code Modal for Check-in */}
                 <Modal

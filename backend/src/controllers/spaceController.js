@@ -25,7 +25,7 @@ const getSpaceById = async (req, res) => {
 // @route   POST /api/spaces
 // @access  Private/Owner
 const createSpace = async (req, res) => {
-    const { name, location, capacity, rates, rules } = req.body;
+    const { name, location, capacity, rates, rules, dynamicPricing } = req.body;
 
     const space = new ParkingSpace({
         ownerId: req.user._id,
@@ -33,6 +33,7 @@ const createSpace = async (req, res) => {
         location,
         capacity,
         rates,
+        dynamicPricing,
         rules,
     });
 
@@ -44,7 +45,7 @@ const createSpace = async (req, res) => {
 // @route   PUT /api/spaces/:id
 // @access  Private/Owner
 const updateSpace = async (req, res) => {
-    const { name, location, capacity, rates, rules, isActive } = req.body;
+    const { name, location, capacity, rates, rules, isActive, dynamicPricing } = req.body;
 
     const space = await ParkingSpace.findById(req.params.id);
 
@@ -58,6 +59,7 @@ const updateSpace = async (req, res) => {
         space.location = location || space.location;
         space.capacity = capacity || space.capacity;
         space.rates = rates || space.rates;
+        if (dynamicPricing !== undefined) space.dynamicPricing = dynamicPricing;
         space.rules = rules || space.rules;
         if (isActive !== undefined) space.isActive = isActive;
 
