@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag, Radio, Divider, QRCode } from 'antd';
+import { Card, Typography, Row, Col, Input, DatePicker, Button, Modal, message, Tag, Radio, Divider, QRCode, Select } from 'antd';
 import { EnvironmentOutlined, DollarOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
@@ -32,6 +32,7 @@ export default function SearchSpaces() {
     const [driverName, setDriverName] = useState('');
     const [driverEmail, setDriverEmail] = useState('');
     const [driverPhone, setDriverPhone] = useState('');
+    const [countryCode, setCountryCode] = useState('+1');
     const [vehicleNumber, setVehicleNumber] = useState('');
 
     // Payment State
@@ -210,7 +211,7 @@ export default function SearchSpaces() {
                     endTime: bookingRange[1].toISOString(),
                     driverName,
                     driverEmail,
-                    driverPhone,
+                    driverPhone: `${countryCode}${driverPhone.replace(/^0+/, '').replace(/\D/g, '')}`,
                     vehicleNumber,
                     totalAmount,
                     bookedHours,
@@ -441,7 +442,22 @@ export default function SearchSpaces() {
                                 </Row>
                                 <Row gutter={12}>
                                     <Col span={12}>
-                                        <Input placeholder="Phone Number" size="large" className="dark:bg-slate-800 dark:border-slate-700 dark:text-white" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} />
+                                        <Input
+                                            addonBefore={
+                                                <Select value={countryCode} onChange={setCountryCode} popupClassName="dark:bg-slate-800" className="w-[85px]">
+                                                    <Select.Option value="+1" className="dark:text-slate-200">+1</Select.Option>
+                                                    <Select.Option value="+44" className="dark:text-slate-200">+44</Select.Option>
+                                                    <Select.Option value="+61" className="dark:text-slate-200">+61</Select.Option>
+                                                    <Select.Option value="+91" className="dark:text-slate-200">+91</Select.Option>
+                                                    <Select.Option value="+94" className="dark:text-slate-200">+94</Select.Option>
+                                                </Select>
+                                            }
+                                            placeholder="Phone (without code)"
+                                            size="large"
+                                            className="dark:bg-slate-800 dark:border-slate-700 dark:text-white custom-phone-input"
+                                            value={driverPhone}
+                                            onChange={(e) => setDriverPhone(e.target.value)}
+                                        />
                                     </Col>
                                     <Col span={12}>
                                         <Input placeholder="Vehicle License Plate" size="large" className="dark:bg-slate-800 dark:border-slate-700 dark:text-white" value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} />

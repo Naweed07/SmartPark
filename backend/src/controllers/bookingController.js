@@ -2,6 +2,8 @@ import Booking from '../models/Booking.js';
 import ParkingSpace from '../models/ParkingSpace.js';
 import mongoose from 'mongoose';
 import QRCode from 'qrcode';
+import { sendBookingConfirmation } from '../utils/twilioService.js';
+import sendEmail from '../utils/sendEmail.js';
 
 // @desc    Create new booking
 // @route   POST /api/bookings
@@ -64,6 +66,44 @@ const createBooking = async (req, res) => {
         await createdBooking.save();
     } catch (err) {
         console.error('Failed to generate QR code:', err);
+    }
+
+    // Fire off WhatsApp/SMS Booking Confirmation via Twilio
+    await sendBookingConfirmation(driverPhone, createdBooking);
+
+    // Fire off Email Confirmation Receipt via Nodemailer (Ethereal test logs if no .env SMTP)
+    try {
+        const startDateStr = new Date(createdBooking.startTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+        const endDateStr = new Date(createdBooking.endTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+        const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <h2 style="color: #1363DF;">SmartPark Booking Confirmed! 🚗</h2>
+                <p>Hi ${driverName},</p>
+                <p>Your parking space has been successfully reserved. Here are your booking details:</p>
+                
+                <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 20px 0;">
+                    <p><strong>Booking ID:</strong> ${createdBooking._id}</p>
+                    <p><strong>Location:</strong> ${space.name} - ${space.location.address}</p>
+                    <p><strong>Vehicle:</strong> ${vehicleNumber}</p>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+                    <p><strong>Arrive:</strong> ${startDateStr}</p>
+                    <p><strong>Depart:</strong> ${endDateStr}</p>
+                    <p><strong>Total Paid:</strong> $${totalAmount}</p>
+                </div>
+                
+                <p>Please keep this email for your records. If you selected 'Pay at Spot', please ensure you pay the owner upon arrival.</p>
+                <p>Thank you for using SmartPark!</p>
+            </div>
+        `;
+
+        await sendEmail({
+            to: driverEmail,
+            subject: "Your SmartPark Booking Receipt",
+            html: emailHtml
+        });
+    } catch (emailErr) {
+        console.error("Failed to trigger email receipt:", emailErr);
     }
 
     res.status(201).json(createdBooking);

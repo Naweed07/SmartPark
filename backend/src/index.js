@@ -9,6 +9,9 @@ import paymentRoutes from './routes/paymentRoutes.js';
 
 dotenv.config();
 
+// Bypass strict SSL certificate checks for local Windows development (e.g. Twilio API)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 connectDB();
 
 const app = express();
