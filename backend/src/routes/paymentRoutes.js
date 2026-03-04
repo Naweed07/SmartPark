@@ -23,41 +23,9 @@ router.post('/process', protect, (req, res) => {
                     booking.paymentStatus = 'PAID';
                     await booking.save();
 
-                    if (booking.driverEmail) {
-                        const emailHtml = `
-                        <div style="font-family: Arial, sans-serif; max-w-lg mx-auto p-4 bg-gray-50 border rounded-lg">
-                            <h2 style="color: #0a1f44;">Booking Receipt Confirmed!</h2>
-                            <p>Hi <b>${booking.driverName}</b>,</p>
-                            <p>Your mock payment of <b>$${booking.totalAmount}</b> was successful. Here is your parking receipt:</p>
-                            
-                            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Parking Space:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.spaceId.name}</td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Location:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.spaceId.location.address}</td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Vehicle Number:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.vehicleNumber}</td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Duration:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${booking.bookedHours} Hour(s)</td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Applied Rate:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><i>${booking.appliedRateDescription}</i></td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Total Amount:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b style="color: #0a1f44;">$${booking.totalAmount}</b></td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>Start:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(booking.startTime).toLocaleString()}</td></tr>
-                                <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><b>End:</b></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${new Date(booking.endTime).toLocaleString()}</td></tr>
-                            </table>
-                            
-                            <div style="text-align: center; margin-top: 20px;">
-                                <a href="https://www.google.com/maps/dir/?api=1&destination=${booking.spaceId.location.lat ? `${booking.spaceId.location.lat},${booking.spaceId.location.lng}` : encodeURIComponent(booking.spaceId.location.address)}" style="background-color: #0a1f44; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Navigate to Parking Space</a>
-                            </div>
-
-                            <p style="margin-top: 20px; font-size: 12px; color: #888;">Thank you for using SmartPark!</p>
-                        </div>
-                    `;
-
-                        await sendEmail({
-                            to: booking.driverEmail,
-                            subject: `💳 SmartPark Receipt for ${booking.spaceId.name}`,
-                            html: emailHtml
-                        });
-                    }
                 }
             } catch (error) {
-                console.error("Error generating receipt email:", error);
+                console.error("Error updating booking payment status:", error);
             }
 
             res.json({ success: true, transactionId: `txn_${Date.now()}` });

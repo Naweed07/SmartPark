@@ -89,7 +89,15 @@ const createBooking = async (req, res) => {
                     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
                     <p><strong>Arrive:</strong> ${startDateStr}</p>
                     <p><strong>Depart:</strong> ${endDateStr}</p>
-                    <p><strong>Total Paid:</strong> $${totalAmount}</p>
+                    <p><strong>Duration:</strong> ${bookedHours} Hour(s)</p>
+                    <p><strong>Rate Applied:</strong> <span style="font-style: italic">${appliedRateDescription}</span></p>
+                    <p><strong>Total Paid:</strong> <strong style="color: #1363DF; font-size: 1.1em">$${totalAmount}</strong></p>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+                    <div style="text-align: center; margin-top: 15px;">
+                        <img src="cid:receiptQrCode" alt="Booking QR Code" style="display: block; margin: 0 auto; width: 150px; height: 150px; border: 1px solid #ccc; background: white;" />
+                        <br/>
+                        <small style="color: #666; font-family: monospace;">Scan on Arrival</small>
+                    </div>
                 </div>
                 
                 <p>Please keep this email for your records. If you selected 'Pay at Spot', please ensure you pay the owner upon arrival.</p>
@@ -97,10 +105,20 @@ const createBooking = async (req, res) => {
             </div>
         `;
 
+        const base64Data = createdBooking.qrCodeUrl.replace(/^data:image\/png;base64,/, "");
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+
         await sendEmail({
             to: driverEmail,
             subject: "Your SmartPark Booking Receipt",
-            html: emailHtml
+            html: emailHtml,
+            attachments: [
+                {
+                    filename: 'qrcode.png',
+                    content: imageBuffer,
+                    cid: 'receiptQrCode' // matching cid inside the html img string
+                }
+            ]
         });
     } catch (emailErr) {
         console.error("Failed to trigger email receipt:", emailErr);

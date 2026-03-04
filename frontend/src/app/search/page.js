@@ -156,10 +156,10 @@ export default function SearchSpaces() {
         if (!element) return;
 
         const opt = {
-            margin: 0.3,
+            margin: 0.1,
             filename: `SmartPark_Receipt_${receiptData.transactionId}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
@@ -263,7 +263,6 @@ export default function SearchSpaces() {
         if (!isPayPalApproved) setBookingLoading(true);
 
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-
         const { exactHours, bookedHours, totalAmount, appliedRateDescription } = calculateBookingPrice(selectedSpace, bookingRange);
 
         // If paying with PayPal, we DO NOT create the booking until PayPal is approved
@@ -714,70 +713,76 @@ export default function SearchSpaces() {
                     centered
                 >
                     {receiptData && (
-                        <div className="py-2 overflow-y-auto max-h-[70vh] px-2 -mx-2" id="receipt-content">
-                            <div className="text-center mb-6 mt-4">
-                                <Title level={3} className="text-[#1363DF] dark:text-[#3b82f6] m-0">Smart<span className="text-gray-900 dark:text-white">Park</span></Title>
-                                <p className="text-gray-500 dark:text-slate-400 m-0 text-sm mt-1">123 Market Street, Kandy Sri Lanka</p>
-                                <p className="text-gray-500 dark:text-slate-400 m-0 text-sm">
-                                    Tel: <a href="tel:+940778880890" className="text-[#1363DF] dark:text-[#3b82f6] hover:text-[#0A1A3F] dark:hover:text-[#60a5fa]" suppressHydrationWarning>+94 (077) 888-0890</a> | <a href="mailto:support@smartpark.com" className="text-[#1363DF] dark:text-[#3b82f6] hover:text-[#0A1A3F] dark:hover:text-[#60a5fa]" suppressHydrationWarning>support@smartpark.com</a>
-                                </p>
-                            </div>
+                        <div className="py-2 overflow-y-auto max-h-[70vh] -mx-4 px-4 custom-scrollbar">
+                            <div id="receipt-content" className="p-4 bg-white" style={{ minHeight: '600px', width: '100%', color: 'black' }}>
+                                <div className="text-center mb-6 mt-4">
+                                    <Title level={3} className="text-[#1363DF] m-0">Smart<span className="text-gray-900">Park</span></Title>
+                                    <p className="text-gray-600 m-0 text-sm mt-1">123 Market Street, Kandy Sri Lanka</p>
+                                    <p className="text-gray-600 m-0 text-sm">
+                                        Tel: <a href="tel:+940778880890" className="text-[#1363DF]" suppressHydrationWarning>+94 (077) 888-0890</a> | <a href="mailto:support@smartpark.com" className="text-[#1363DF]" suppressHydrationWarning>support@smartpark.com</a>
+                                    </p>
+                                </div>
 
-                            <div className="flex justify-center mb-6">
-                                <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col items-center">
-                                    <QRCode value={receiptData.bookingId} size={160} color="#0a1f44" bgColor="transparent" />
-                                    <Text className="text-xs text-gray-400 dark:text-slate-400 mt-2 font-mono">Scan on Arrival</Text>
+                                <div className="flex justify-center mb-6">
+                                    <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center">
+                                        <QRCode value={receiptData.bookingId} size={160} color="#0a1f44" bgColor="transparent" />
+                                        <Text className="text-xs text-gray-500 mt-2 font-mono">Scan on Arrival</Text>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-5 border border-gray-100 dark:border-slate-700">
-                                <div className="flex justify-between border-b dark:border-slate-700 pb-3 mb-3">
-                                    <span className="text-gray-500 dark:text-slate-400">Transaction ID</span>
-                                    <span className="font-mono text-gray-700 dark:text-slate-300">{receiptData.transactionId}</span>
+                                <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Transaction ID</span>
+                                        <span className="font-mono text-gray-800">{receiptData.transactionId}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Payment Status</span>
+                                        {receiptData.paymentStatus === 'PAID'
+                                            ? <Tag color="green" className="m-0 border-0 font-bold bg-green-50 text-green-700">PAID (Card)</Tag>
+                                            : <Tag color="orange" className="m-0 border-0 font-bold bg-orange-50 text-orange-700">PENDING (Pay at Spot)</Tag>
+                                        }
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Parking Space</span>
+                                        <strong className="text-gray-900">{receiptData.spaceName}</strong>
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Vehicle</span>
+                                        <strong className="text-gray-900">{receiptData.vehicleNumber} ({receiptData.driverName})</strong>
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Arrival</span>
+                                        <span className="text-gray-900">{new Date(receiptData.startTime).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Duration</span>
+                                        <strong className="text-gray-900">{receiptData.bookedHours} Hour(s)</strong>
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Applied Rate</span>
+                                        <span className="text-gray-800 italic">{receiptData.appliedRateDescription}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-200 pb-3 mb-3">
+                                        <span className="text-gray-600">Departure</span>
+                                        <span className="text-gray-900">{new Date(receiptData.endTime).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-2">
+                                        <span className="text-gray-700 font-medium">Total Amount</span>
+                                        <strong className="text-[#1363DF] text-xl">${receiptData.totalAmount}</strong>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between border-b dark:border-slate-700 pb-3 mb-3">
-                                    <span className="text-gray-500 dark:text-slate-400">Payment Status</span>
-                                    {receiptData.paymentStatus === 'PAID'
-                                        ? <Tag color="green" className="m-0 border-0 font-bold dark:bg-green-900/30 dark:text-green-400">PAID (Card)</Tag>
-                                        : <Tag color="orange" className="m-0 border-0 font-bold dark:bg-orange-900/30 dark:text-orange-400">PENDING (Pay at Spot)</Tag>
-                                    }
-                                </div>
-                                <div className="flex justify-between border-b dark:border-slate-700 pb-3 mb-3">
-                                    <span className="text-gray-500 dark:text-slate-400">Parking Space</span>
-                                    <strong className="text-gray-800 dark:text-white">{receiptData.spaceName}</strong>
-                                </div>
-                                <div className="flex justify-between border-b dark:border-slate-700 pb-3 mb-3">
-                                    <span className="text-gray-500 dark:text-slate-400">Vehicle</span>
-                                    <strong className="text-gray-800 dark:text-white">{receiptData.vehicleNumber} ({receiptData.driverName})</strong>
-                                </div>
-                                <div className="flex justify-between border-b dark:border-slate-700 pb-3 mb-3">
-                                    <span className="text-gray-500 dark:text-slate-400">Arrival</span>
-                                    <span className="text-gray-800 dark:text-white">{new Date(receiptData.startTime).toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between border-b dark:border-slate-700 pb-3 mb-3">
-                                    <span className="text-gray-500 dark:text-slate-400">Duration</span>
-                                    <strong className="text-gray-800 dark:text-white">{receiptData.bookedHours} Hour(s)</strong>
-                                </div>
-                                <div className="flex justify-between border-b dark:border-slate-700 pb-3 mb-3">
-                                    <span className="text-gray-500 dark:text-slate-400">Applied Rate</span>
-                                    <span className="text-gray-700 dark:text-slate-300 italic">{receiptData.appliedRateDescription}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500 dark:text-slate-400">Departure</span>
-                                    <span className="text-gray-800 dark:text-white">{new Date(receiptData.endTime).toLocaleString()}</span>
-                                </div>
-                            </div>
 
-                            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-slate-700 text-center">
-                                <p className="text-xs text-gray-400 dark:text-slate-500 m-0 font-medium uppercase tracking-wider">Terms and Conditions</p>
-                                <p className="text-[10px] text-gray-400 dark:text-slate-500 m-0 mt-2 leading-relaxed px-4">
-                                    Please retain this receipt for your records. SmartPark is not liable for theft or damage to vehicles. Vehicles left beyond the booked duration may be subject to towing or additional fees at the owner's discretion.
-                                </p>
+                                <div className="mt-6 pt-4 border-t border-gray-300 text-center">
+                                    <p className="text-xs text-gray-500 m-0 font-medium uppercase tracking-wider">Terms and Conditions</p>
+                                    <p className="text-[10px] text-gray-500 m-0 mt-2 leading-relaxed px-4">
+                                        Please retain this receipt for your records. SmartPark is not liable for theft or damage to vehicles. Vehicles left beyond the booked duration may be subject to towing or additional fees at the owner's discretion.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     )}
                 </Modal>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

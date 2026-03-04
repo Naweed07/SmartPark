@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({ to, subject, html, attachments }) => {
     try {
         // Create an Ethereal test account (Fake SMTP Service)
         // If the user hasn't provided their own creds in .env, this will generate random test credentials
@@ -15,23 +15,6 @@ const sendEmail = async ({ to, subject, html }) => {
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASS,
-                },
-            });
-        } else {
-            // Generate ethereal testing credentials
-            console.warn("⚠️ No SMTP credentials found in .env! Generating an Ethereal test account...");
-            const testAccount = await nodemailer.createTestAccount();
-
-            transporter = nodemailer.createTransport({
-                host: "smtp.ethereal.email",
-                port: 587,
-                secure: false, // true for 465, false for other ports
-                auth: {
-                    user: testAccount.user, // generated ethereal user
-                    pass: testAccount.pass, // generated ethereal password
-                },
-                tls: {
-                    rejectUnauthorized: false // Bypass self-signed cert error for testing
                 }
             });
         }
@@ -41,6 +24,7 @@ const sendEmail = async ({ to, subject, html }) => {
             to, // list of receivers
             subject, // Subject line
             html, // html body
+            attachments: attachments || []
         });
 
         console.log("Email sent: %s", info.messageId);
