@@ -21,11 +21,11 @@ export default function ContactPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-20 px-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-20 px-6 transition-colors duration-300">
             <div className="max-w-6xl mx-auto pt-16">
                 <div className="text-center mb-16">
-                    <Title level={1} className="text-gray-800 m-0 mb-4 text-4xl font-bold">Contact Us</Title>
-                    <Text className="text-xl text-gray-500 max-w-2xl mx-auto block leading-relaxed">
+                    <Title level={1} className="text-gray-800 dark:text-white m-0 mb-4 text-4xl font-bold transition-colors">Contact Us</Title>
+                    <Text className="text-xl text-gray-500 dark:text-slate-400 max-w-2xl mx-auto block leading-relaxed transition-colors">
                         Have a question about booking a space, or interested in listing your driveway for cash? We're here to help.
                     </Text>
                 </div>
@@ -34,14 +34,14 @@ export default function ContactPage() {
                     {/* Contact Info Cards */}
                     <Col xs={24} md={10}>
                         <div className="flex flex-col gap-6">
-                            <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow bg-white p-2">
+                            <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-slate-800 dark:shadow-none p-2">
                                 <div className="flex items-start gap-4">
-                                    <div className="bg-brand-50 p-4 rounded-xl">
-                                        <EnvironmentOutlined className="text-2xl text-brand-500" />
+                                    <div className="bg-brand-50 dark:bg-slate-700/50 p-4 rounded-xl">
+                                        <EnvironmentOutlined className="text-2xl text-brand-500 dark:text-blue-400" />
                                     </div>
                                     <div>
-                                        <Title level={4} className="m-0 mb-1">Our Headquarters</Title>
-                                        <Text className="text-gray-500 leading-relaxed block">
+                                        <Title level={4} className="m-0 mb-1 dark:text-white">Our Headquarters</Title>
+                                        <Text className="text-gray-500 dark:text-slate-400 leading-relaxed block">
                                             123 Market Street, Suite 400<br />
                                             Kandy, Central Province<br />
                                             Sri Lanka 20000
@@ -50,28 +50,28 @@ export default function ContactPage() {
                                 </div>
                             </Card>
 
-                            <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow bg-white p-2">
+                            <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-slate-800 dark:shadow-none p-2">
                                 <div className="flex items-start gap-4">
-                                    <div className="bg-blue-50 p-4 rounded-xl">
-                                        <PhoneOutlined className="text-2xl text-blue-500" />
+                                    <div className="bg-blue-50 dark:bg-slate-700/50 p-4 rounded-xl">
+                                        <PhoneOutlined className="text-2xl text-blue-500 dark:text-blue-400" />
                                     </div>
                                     <div>
-                                        <Title level={4} className="m-0 mb-1">Call Us Directly</Title>
-                                        <Text className="text-gray-500 block mb-1">General Inquiries: <a href="tel:+940778880890" className="text-blue-500 hover:text-blue-600 font-medium" suppressHydrationWarning>+94 (077) 888-0890</a></Text>
-                                        <Text className="text-gray-500 block">Support: <a href="tel:+940771234567" className="text-blue-500 hover:text-blue-600 font-medium" suppressHydrationWarning>+94 (077) 123-4567</a></Text>
+                                        <Title level={4} className="m-0 mb-1 dark:text-white">Call Us Directly</Title>
+                                        <Text className="text-gray-500 dark:text-slate-400 block mb-1">General Inquiries: <a href="tel:+940778880890" className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 font-medium" suppressHydrationWarning>+94 (077) 888-0890</a></Text>
+                                        <Text className="text-gray-500 dark:text-slate-400 block">Support: <a href="tel:+940771234567" className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 font-medium" suppressHydrationWarning>+94 (077) 123-4567</a></Text>
                                     </div>
                                 </div>
                             </Card>
 
-                            <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow bg-white p-2">
+                            <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-slate-800 dark:shadow-none p-2">
                                 <div className="flex items-start gap-4">
-                                    <div className="bg-orange-50 p-4 rounded-xl">
-                                        <MailOutlined className="text-2xl text-orange-500" />
+                                    <div className="bg-orange-50 dark:bg-slate-700/50 p-4 rounded-xl">
+                                        <MailOutlined className="text-2xl text-orange-500 dark:text-orange-400" />
                                     </div>
                                     <div>
-                                        <Title level={4} className="m-0 mb-1">Send an Email</Title>
-                                        <Text className="text-gray-500 block mb-1">Support: support@smartpark.com</Text>
-                                        <Text className="text-gray-500 block">Partnerships: hello@smartpark.com</Text>
+                                        <Title level={4} className="m-0 mb-1 dark:text-white">Send an Email</Title>
+                                        <Text className="text-gray-500 dark:text-slate-400 block mb-1">Support: support@smartpark.com</Text>
+                                        <Text className="text-gray-500 dark:text-slate-400 block">Partnerships: hello@smartpark.com</Text>
                                     </div>
                                 </div>
                             </Card>
@@ -80,8 +80,8 @@ export default function ContactPage() {
 
                     {/* Contact Form */}
                     <Col xs={24} md={14}>
-                        <Card className="rounded-2xl border-0 shadow-lg bg-white p-4 md:p-8">
-                            <Title level={3} className="text-gray-800 m-0 mb-6">Send us a Message</Title>
+                        <Card className="rounded-2xl border-0 shadow-lg dark:shadow-none bg-white dark:bg-slate-800 p-4 md:p-8">
+                            <Title level={3} className="text-gray-800 dark:text-white m-0 mb-6">Send us a Message</Title>
 
                             <Form
                                 form={form}
@@ -93,48 +93,48 @@ export default function ContactPage() {
                                     <Col xs={24} sm={12}>
                                         <Form.Item
                                             name="firstName"
-                                            label={<strong className="text-gray-700">First Name</strong>}
+                                            label={<strong className="text-gray-700 dark:text-slate-300">First Name</strong>}
                                             rules={[{ required: true, message: 'Please enter your first name' }]}
                                         >
-                                            <Input size="large" placeholder="John" className="rounded-lg" />
+                                            <Input size="large" placeholder="John" className="rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
                                         </Form.Item>
                                     </Col>
                                     <Col xs={24} sm={12}>
                                         <Form.Item
                                             name="lastName"
-                                            label={<strong className="text-gray-700">Last Name</strong>}
+                                            label={<strong className="text-gray-700 dark:text-slate-300">Last Name</strong>}
                                             rules={[{ required: true, message: 'Please enter your last name' }]}
                                         >
-                                            <Input size="large" placeholder="Doe" className="rounded-lg" />
+                                            <Input size="large" placeholder="Doe" className="rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
                                         </Form.Item>
                                     </Col>
                                 </Row>
 
                                 <Form.Item
                                     name="email"
-                                    label={<strong className="text-gray-700">Email Address</strong>}
+                                    label={<strong className="text-gray-700 dark:text-slate-300">Email Address</strong>}
                                     rules={[
                                         { required: true, message: 'Please enter your email' },
                                         { type: 'email', message: 'Please enter a valid email' }
                                     ]}
                                 >
-                                    <Input size="large" placeholder="johndoe@example.com" className="rounded-lg" />
+                                    <Input size="large" placeholder="johndoe@example.com" className="rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
                                 </Form.Item>
 
                                 <Form.Item
                                     name="subject"
-                                    label={<strong className="text-gray-700">Subject</strong>}
+                                    label={<strong className="text-gray-700 dark:text-slate-300">Subject</strong>}
                                     rules={[{ required: true, message: 'Please enter a subject' }]}
                                 >
-                                    <Input size="large" placeholder="How can we help?" className="rounded-lg" />
+                                    <Input size="large" placeholder="How can we help?" className="rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
                                 </Form.Item>
 
                                 <Form.Item
                                     name="message"
-                                    label={<strong className="text-gray-700">Your Message</strong>}
+                                    label={<strong className="text-gray-700 dark:text-slate-300">Your Message</strong>}
                                     rules={[{ required: true, message: 'Please enter your message' }]}
                                 >
-                                    <Input.TextArea size="large" rows={5} placeholder="Write your specific question or feedback here..." className="rounded-lg resize-none" />
+                                    <Input.TextArea size="large" rows={5} placeholder="Write your specific question or feedback here..." className="rounded-lg resize-none dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
                                 </Form.Item>
 
                                 <Form.Item className="mb-0 mt-6">
@@ -144,7 +144,7 @@ export default function ContactPage() {
                                         size="large"
                                         icon={<SendOutlined />}
                                         loading={loading}
-                                        className="w-full rounded-lg h-12 text-lg font-semibold"
+                                        className="w-full rounded-lg h-12 text-lg font-semibold bg-[#0a1f44] hover:!bg-[#1363DF] dark:bg-blue-600 dark:hover:!bg-blue-700 border-none"
                                     >
                                         Send Message
                                     </Button>

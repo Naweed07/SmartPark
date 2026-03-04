@@ -10,7 +10,7 @@ export default function AboutPage() {
     return (
         <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-900 transition-colors duration-300">
             {/* Hero Section */}
-            <div className="bg-[#0A1A3F] dark:bg-slate-950 pt-32 pb-24 px-6 text-center relative overflow-hidden transition-colors duration-300">
+            <div className="bg-[#f8fafc] dark:bg-slate-950 pt-32 pb-24 px-6 text-center relative overflow-hidden transition-colors duration-300">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[#1363DF]/20 rounded-full blur-[120px] pointer-events-none"></div>
                 <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#1363DF]/10 rounded-full blur-[100px] pointer-events-none"></div>
 
