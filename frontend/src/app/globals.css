@@ -17,3 +17,123 @@ body {
   background: rgb(var(--background-rgb));
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Global Dark Mode Overrides for Ant Design */
+.dark .ant-modal-content,
+.dark .ant-modal-header {
+  background-color: #1e293b !important;
+  /* slate-800 */
+  color: #f1f5f9 !important;
+  /* slate-100 */
+}
+
+.dark .ant-modal-title {
+  color: #fff !important;
+}
+
+.dark .ant-modal-close {
+  color: #94a3b8 !important;
+  /* slate-400 */
+}
+
+.dark .ant-modal-close:hover {
+  background-color: #334155 !important;
+  /* slate-700 */
+  color: #fff !important;
+}
+
+.dark .ant-table {
+  background-color: transparent !important;
+  color: #f1f5f9 !important;
+}
+
+.dark .ant-table-thead>tr>th {
+  background-color: #0f172a !important;
+  /* slate-900 */
+  color: #f8fafc !important;
+  /* slate-50 */
+  border-bottom: 1px solid #334155 !important;
+}
+
+.dark .ant-table-tbody>tr>td {
+  border-bottom: 1px solid #334155 !important;
+}
+
+.dark .ant-table-tbody>tr:hover>td {
+  background-color: #334155 !important;
+  /* slate-700 */
+}
+
+.dark .ant-table-cell-row-hover {
+  background: #334155 !important;
+}
+
+/* Forms & Inputs in Dark Mode */
+.dark .ant-form-item-label>label {
+  color: #cbd5e1 !important;
+  /* slate-300 */
+}
+
+.dark .ant-input,
+.dark .ant-input-number,
+.dark .ant-input-number-input,
+.dark .ant-select-selector,
+.dark .ant-select-arrow {
+  background-color: #0f172a !important;
+  /* slate-900 */
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+  /* slate-600 */
+}
+
+.dark .ant-input::placeholder,
+.dark .ant-input-number-input::placeholder {
+  color: #64748b !important;
+  /* slate-500 */
+}
+
+.dark .ant-input-number-handler-wrap {
+  background-color: #1e293b !important;
+}
+
+.dark .ant-input-number-handler {
+  border-color: #475569 !important;
+}
+
+.dark .ant-select-dropdown {
+  background-color: #1e293b !important;
+  /* slate-800 */
+  border: 1px solid #334155 !important;
+}
+
+.dark .ant-select-item {
+  color: #cbd5e1 !important;
+}
+
+.dark .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: #0ea5e9 !important;
+  /* Light blue accent */
+  color: #fff !important;
+}
+
+.dark .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: #334155 !important;
+  /* slate-700 hover */
+}
+
+.dark .ant-pagination-item a,
+.dark .ant-pagination-prev .ant-pagination-item-link,
+.dark .ant-pagination-next .ant-pagination-item-link {
+  color: #cbd5e1 !important;
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+.dark .ant-pagination-item-active {
+  border-color: #3b82f6 !important;
+  background-color: #3b82f6 !important;
+}
+
+.dark .ant-pagination-item-active a {
+  color: #fff !important;
+}

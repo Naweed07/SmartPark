@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space } from 'antd';
+import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space, Select } from 'antd';
 import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, ScanOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { getApiUrl } from '../../../utils/api';
 import dynamic from 'next/dynamic';
+import { ThemeToggle } from '../../../components/ThemeToggle';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const LocationPickerMapNoSSR = dynamic(
     () => import('../../../components/LocationPickerMap'),
@@ -19,7 +21,8 @@ export default function OwnerDashboard() {
     const [activeMenu, setActiveMenu] = useState('1'); // '1' = Dashboard, '2' = Bookings
     const [spaces, setSpaces] = useState([]);
     const [bookings, setBookings] = useState([]);
-    const [metrics, setMetrics] = useState({ activeBookings: 0, totalRevenue: 0 });
+    const [revenueDays, setRevenueDays] = useState(7);
+    const [metrics, setMetrics] = useState({ activeBookings: 0, totalRevenue: 0, revenueByDay: [], bookingsBySpace: [] });
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isVerifyModalVisible, setIsVerifyModalVisible] = useState(false);
     const [verifyBookingId, setVerifyBookingId] = useState('');
@@ -39,8 +42,9 @@ export default function OwnerDashboard() {
         fetchDashboardData();
     }, []);
 
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = async (overrideDays) => {
         try {
+            const currentDays = overrideDays || revenueDays;
             const userInfo = localStorage.getItem('userInfo');
             if (!userInfo) return;
             const token = JSON.parse(userInfo).token;
@@ -50,7 +54,7 @@ export default function OwnerDashboard() {
                 fetch(`${getApiUrl()}/spaces/my`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                fetch(`${getApiUrl()}/bookings/metrics/owner`, {
+                fetch(`${getApiUrl()}/bookings/metrics/owner?days=${currentDays}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
                 fetch(`${getApiUrl()}/bookings/owner`, {
@@ -59,7 +63,7 @@ export default function OwnerDashboard() {
             ]);
 
             const spaceData = await spaceRes.json();
-            const metricsData = await metricsRes.ok ? await metricsRes.json() : { activeBookings: 0, totalRevenue: 0 };
+            const metricsData = await metricsRes.ok ? await metricsRes.json() : { activeBookings: 0, totalRevenue: 0, revenueByDay: [], bookingsBySpace: [] };
             const bookingsData = await bookingsRes.ok ? await bookingsRes.json() : [];
 
             if (!spaceRes.ok) {
@@ -314,18 +318,20 @@ export default function OwnerDashboard() {
 
     return (
         <Layout className="min-h-screen transition-colors duration-300">
-            <Sider breakpoint="lg" collapsedWidth="0" className="bg-white dark:bg-slate-900 shadow-xl z-10 transition-colors duration-300 sidebar-dark" width={250}>
-                <div className="p-6">
-                    <Title level={3} className="text-[#1363DF] dark:text-[#3b82f6] m-0">Smart<span className="text-gray-900 dark:text-white transition-colors duration-300">Park</span></Title>
+            <Sider theme="light" breakpoint="lg" collapsedWidth="0" className="!bg-[#DCE4ED] dark:!bg-slate-900 shadow-xl z-10 transition-colors duration-300" width={250}>
+                <div className="p-6 flex items-center justify-between">
+                    <img src="/logo.png" alt="SmartPark" className="h-10 w-100 object-cover rounded-md shadow-sm" />
+                    <ThemeToggle />
                 </div>
                 <Menu
+                    theme="light"
                     mode="inline"
                     defaultSelectedKeys={['1']}
                     selectedKeys={[activeMenu]}
                     onSelect={({ key }) => {
                         if (key !== '3') setActiveMenu(key);
                     }}
-                    className="border-r-0"
+                    className="border-r-0 !bg-[#DCE4ED] dark:!bg-slate-900"
                     items={[
                         { key: '1', icon: <AppstoreOutlined />, label: 'Dashboard' },
                         { key: '2', icon: <UnorderedListOutlined />, label: 'My Bookings' },
@@ -335,12 +341,12 @@ export default function OwnerDashboard() {
             </Sider>
 
             <Layout className="bg-transparent">
-                <Header className="bg-white dark:bg-slate-900 px-8 flex items-center justify-between shadow-sm transition-colors duration-300 border-b border-gray-100 dark:border-slate-800">
+                <div className="bg-[#f8fafc] dark:bg-slate-900 px-8 flex items-center justify-between shadow-sm transition-colors duration-300 border-b border-gray-100 dark:border-slate-800">
                     <Title level={4} className="m-0 dark:text-white transition-colors duration-300">Owner Dashboard</Title>
                     <div className="flex items-center gap-4">
                         <span className="font-medium dark:text-slate-300 transition-colors duration-300">Welcome!</span>
                     </div>
-                </Header>
+                </div>
 
                 <Content className="p-8 bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
                     {activeMenu === '1' ? (
@@ -359,6 +365,72 @@ export default function OwnerDashboard() {
                                 <Col xs={24} sm={8}>
                                     <Card className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card">
                                         <Statistic title={<span className="dark:text-slate-400">Total Revenue</span>} value={metrics.totalRevenue} prefix="$" valueStyle={{ color: '#10b981' }} />
+                                    </Card>
+                                </Col>
+                            </Row>
+
+                            {/* Analytics Charts Row */}
+                            <Row gutter={[24, 24]} className="mb-8">
+                                <Col xs={24} lg={14}>
+                                    <Card className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card h-[400px]">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <Title level={5} className="dark:text-white m-0">Revenue Trend</Title>
+                                            <Select
+                                                value={revenueDays}
+                                                onChange={(val) => {
+                                                    setRevenueDays(val);
+                                                    fetchDashboardData(val);
+                                                }}
+                                                options={[
+                                                    { value: 7, label: 'Last 7 Days' },
+                                                    { value: 14, label: 'Last 14 Days' },
+                                                    { value: 30, label: 'Last 30 Days' }
+                                                ]}
+                                                className="w-36 drop-shadow-sm"
+                                                popupClassName="dark:bg-slate-800"
+                                            />
+                                        </div>
+                                        <div className="h-[300px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={metrics.revenueByDay || []} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                                                    <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                                                    <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                                                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`$${value}`, 'Revenue']} />
+                                                    <Line type="monotone" dataKey="revenue" stroke="#1363DF" strokeWidth={3} dot={{ r: 4, fill: '#1363DF', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </Card>
+                                </Col>
+                                <Col xs={24} lg={10}>
+                                    <Card className="rounded-2xl shadow-sm border-0 dark:bg-slate-800 transition-colors duration-300 dashboard-card h-[400px]">
+                                        <Title level={5} className="dark:text-white mb-6">Bookings by Space Location</Title>
+                                        <div className="h-[300px] flex items-center justify-center">
+                                            {(!metrics.bookingsBySpace || metrics.bookingsBySpace.length === 0) ? (
+                                                <p className="text-gray-400 dark:text-slate-500">No booking data available yet.</p>
+                                            ) : (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={metrics.bookingsBySpace}
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius={60}
+                                                            outerRadius={80}
+                                                            paddingAngle={5}
+                                                            dataKey="value"
+                                                        >
+                                                            {metrics.bookingsBySpace.map((entry, index) => (
+                                                                <Cell key={`cell-${index}`} fill={['#1363DF', '#14b8a6', '#f59e0b', '#8b5cf6', '#ec4899'][index % 5]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            )}
+                                        </div>
                                     </Card>
                                 </Col>
                             </Row>

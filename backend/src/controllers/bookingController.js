@@ -117,7 +117,7 @@ const getSpaceBookings = async (req, res) => {
 // @access  Private/Owner
 const getOwnerMetrics = async (req, res) => {
     // 1. Find all parking spaces owned by this user
-    const ownerSpaces = await ParkingSpace.find({ ownerId: req.user._id }).select('_id');
+    const ownerSpaces = await ParkingSpace.find({ ownerId: req.user._id }).select('_id name');
     const spaceIds = ownerSpaces.map(space => space._id);
 
     // 2. Aggregate active bookings against those spaces
@@ -147,9 +147,78 @@ const getOwnerMetrics = async (req, res) => {
 
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
 
+    const daysStr = req.query.days;
+    const daysToAggr = daysStr ? parseInt(daysStr, 10) : 7;
+
+    // 4. Aggregate revenue by day for the last X days (for Line Chart)
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysToAggr + 1);
+    startDate.setHours(0, 0, 0, 0);
+
+    const revenueByDayResult = await Booking.aggregate([
+        {
+            $match: {
+                spaceId: { $in: spaceIds },
+                status: 'CONFIRMED',
+                createdAt: { $gte: startDate }
+            }
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                revenue: { $sum: "$totalAmount" }
+            }
+        },
+        {
+            $sort: { "_id": 1 }
+        }
+    ]);
+
+    // Format for Recharts (fill in missing days with 0)
+    const revenueByDay = [];
+    for (let i = 0; i < daysToAggr; i++) {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        const dateString = d.toISOString().split('T')[0];
+        const match = revenueByDayResult.find(r => r._id === dateString);
+        revenueByDay.push({
+            date: dateString,
+            revenue: match ? match.revenue : 0
+        });
+    }
+
+    // 5. Aggregate bookings by space (for Pie Chart)
+    const bookingsBySpaceResult = await Booking.aggregate([
+        {
+            $match: {
+                spaceId: { $in: spaceIds },
+                status: 'CONFIRMED'
+            }
+        },
+        {
+            $group: {
+                _id: "$spaceId",
+                bookings: { $sum: 1 }
+            }
+        }
+    ]);
+
+    // Map the spaceId back to the space name
+    const spaceMap = new Map();
+    ownerSpaces.forEach(space => {
+        spaceMap.set(space._id.toString(), space.name);
+    });
+
+    const bookingsBySpace = bookingsBySpaceResult.map(item => ({
+        name: spaceMap.get(item._id.toString()) || 'Unknown Space',
+        value: item.bookings
+    }));
+
     res.json({
         activeBookings: activeBookingsCount,
-        totalRevenue: totalRevenue
+        totalRevenue: totalRevenue,
+        revenueByDay: revenueByDay,
+        bookingsBySpace: bookingsBySpace
     });
 };
 
