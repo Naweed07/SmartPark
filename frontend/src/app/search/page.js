@@ -290,7 +290,8 @@ export default function SearchSpaces() {
                     totalAmount,
                     bookedHours,
                     appliedRateDescription,
-                    paymentMethod
+                    paymentMethod,
+                    transactionId: paymentMethod === 'PAYPAL' ? paypalTransactionId : null
                 }),
             });
 
@@ -627,25 +628,43 @@ export default function SearchSpaces() {
                                         {(() => {
                                             const currentTotal = calculateBookingPrice(selectedSpace, bookingRange).totalAmount;
 
+                                            console.log("PayPal Client ID Loaded:", process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID);
                                             return (
-                                                <PayPalScriptProvider options={{ "client-id": "test", currency: "USD", intent: "capture" }}>
+                                                <PayPalScriptProvider
+                                                    options={{
+                                                        "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+                                                        "currency": "USD",
+                                                        "intent": "capture"
+                                                    }}
+                                                >
                                                     <PayPalButtons
                                                         forceReRender={[currentTotal, isModalVisible]}
-                                                        style={{ layout: "vertical", color: "blue", shape: "rect", label: "checkout" }}
+                                                        style={{ color: "blue", shape: "rect", label: "pay", height: 40 }}
                                                         createOrder={(data, actions) => {
                                                             if (!driverName || !driverEmail || !vehicleNumber || !bookingRange) {
                                                                 message.error('Please fill in all details before proceeding with PayPal');
                                                                 return actions.reject();
                                                             }
+                                                            const orderAmount = parseFloat(currentTotal).toFixed(2);
+                                                            console.log("Attempting PayPal Order Creation for Amount:", orderAmount);
                                                             return actions.order.create({
-                                                                purchase_units: [{
-                                                                    amount: {
-                                                                        value: currentTotal.toString()
+                                                                intent: "CAPTURE",
+                                                                purchase_units: [
+                                                                    {
+                                                                        reference_id: "smartpark_booking",
+                                                                        amount: {
+                                                                            currency_code: 'USD',
+                                                                            value: orderAmount
+                                                                        }
                                                                     }
-                                                                }]
+                                                                ]
                                                             });
                                                         }}
                                                         onApprove={handlePayPalApprove}
+                                                        onError={(err) => {
+                                                            console.error("PayPal Error Details:", err);
+                                                            message.error("PayPal encountered an error. Check console.");
+                                                        }}
                                                     />
                                                 </PayPalScriptProvider>
                                             );

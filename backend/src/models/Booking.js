@@ -52,6 +52,10 @@ const bookingSchema = mongoose.Schema({
         required: true,
         default: 'PENDING'
     },
+    transactionId: {
+        type: String,
+        default: null
+    },
     qrCodeUrl: {
         type: String,
         default: null

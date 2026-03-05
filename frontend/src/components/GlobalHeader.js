@@ -31,7 +31,9 @@ export default function GlobalHeader() {
     };
 
     const handleDashboardClick = () => {
-        if (user?.role === 'OWNER') {
+        if (user?.role === 'ADMIN') {
+            router.push('/admin/dashboard');
+        } else if (user?.role === 'OWNER') {
             router.push('/owner/dashboard');
         } else {
             router.push('/driver/dashboard');

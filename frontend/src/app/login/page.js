@@ -29,7 +29,9 @@ export default function Login() {
             if (res.ok) {
                 localStorage.setItem('userInfo', JSON.stringify(data));
                 message.success('Login successful!');
-                if (data.role === 'OWNER') {
+                if (data.role === 'ADMIN') {
+                    router.push('/admin/dashboard');
+                } else if (data.role === 'OWNER') {
                     router.push('/owner/dashboard');
                 } else {
                     router.push('/search');

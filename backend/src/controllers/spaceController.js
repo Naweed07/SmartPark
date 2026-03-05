@@ -4,7 +4,8 @@ import ParkingSpace from '../models/ParkingSpace.js';
 // @route   GET /api/spaces
 // @access  Public
 const getSpaces = async (req, res) => {
-    const spaces = await ParkingSpace.find({ isActive: true }).populate('ownerId', 'name email');
+    // Only return active spaces that have been explicitly APPROVED by an Admin
+    const spaces = await ParkingSpace.find({ isActive: true, approvalStatus: 'APPROVED' }).populate('ownerId', 'name email');
     res.json(spaces);
 };
 

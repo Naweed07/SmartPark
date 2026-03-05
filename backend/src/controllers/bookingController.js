@@ -9,7 +9,7 @@ import sendEmail from '../utils/sendEmail.js';
 // @route   POST /api/bookings
 // @access  Private
 const createBooking = async (req, res) => {
-    const { spaceId, startTime, endTime, totalAmount, driverName, driverPhone, driverEmail, vehicleNumber, bookedHours, appliedRateDescription, paymentMethod } = req.body;
+    const { spaceId, startTime, endTime, totalAmount, driverName, driverPhone, driverEmail, vehicleNumber, bookedHours, appliedRateDescription, paymentMethod, transactionId } = req.body;
 
     if (!spaceId || !startTime || !endTime || !totalAmount || !driverName || !driverPhone || !driverEmail || !vehicleNumber || !paymentMethod) {
         res.status(400).json({ message: 'All booking fields and payment method are required' });
@@ -55,6 +55,7 @@ const createBooking = async (req, res) => {
         status: 'CONFIRMED', // Auto-confirming the reservation itself
         paymentMethod: paymentMethod,
         paymentStatus: (paymentMethod === 'ON_SITE' || paymentMethod === 'CARD') ? 'PENDING' : 'PAID', // Card and OnSite start pending. PayPal is only hit post-approval.
+        transactionId: transactionId || null,
     });
 
     const createdBooking = await booking.save();

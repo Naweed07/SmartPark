@@ -42,6 +42,11 @@ const parkingSpaceSchema = mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    approvalStatus: {
+        type: String,
+        enum: ['PENDING', 'APPROVED', 'REJECTED'],
+        default: 'PENDING'
+    }
 }, {
     timestamps: true,
 });

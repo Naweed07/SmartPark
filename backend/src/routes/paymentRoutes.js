@@ -21,7 +21,10 @@ router.post('/process', protect, (req, res) => {
                 if (booking) {
                     // Update payment status to paid
                     booking.paymentStatus = 'PAID';
+                    booking.transactionId = `txn_${Date.now()}`;
                     await booking.save();
+
+                    return res.json({ success: true, transactionId: booking.transactionId });
 
                 }
             } catch (error) {

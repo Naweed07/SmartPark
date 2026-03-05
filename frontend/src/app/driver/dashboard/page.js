@@ -108,7 +108,10 @@ export default function DriverDashboard() {
             title: 'Payment',
             key: 'paymentStatus',
             render: (_, record) => {
-                if (record.paymentStatus === 'PAID') return <Tag color="green">PAID (Card)</Tag>;
+                if (record.paymentStatus === 'PAID') {
+                    if (record.paymentMethod === 'PAYPAL') return <Tag color="green">PAID (PayPal)</Tag>;
+                    return <Tag color="green">PAID (Card)</Tag>;
+                }
                 return <Tag color="orange">PENDING (On Site)</Tag>;
             }
         },

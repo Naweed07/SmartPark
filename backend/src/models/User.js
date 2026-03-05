@@ -17,7 +17,8 @@ const userSchema = mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['DRIVER', 'OWNER'],
+        enum: ['DRIVER', 'OWNER', 'ADMIN'],
+        required: true,
         default: 'DRIVER',
     },
 }, {

@@ -6,6 +6,7 @@ import userRoutes from './routes/userRoutes.js';
 import spaceRoutes from './routes/spaceRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/spaces', spaceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 

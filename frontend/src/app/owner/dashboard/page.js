@@ -270,6 +270,15 @@ export default function OwnerDashboard() {
         { title: 'Address', dataIndex: ['location', 'address'], key: 'address' },
         { title: 'Capacity', dataIndex: 'capacity', key: 'capacity' },
         {
+            title: 'Approval Status',
+            key: 'approvalStatus',
+            render: (_, record) => {
+                const status = record.approvalStatus || 'APPROVED';
+                const color = status === 'APPROVED' ? 'green' : status === 'REJECTED' ? 'red' : 'orange';
+                return <Tag color={color}>{status}</Tag>;
+            }
+        },
+        {
             title: 'Rates',
             key: 'rates',
             render: (_, record) => (
@@ -317,7 +326,10 @@ export default function OwnerDashboard() {
             title: 'Payment',
             key: 'paymentStatus',
             render: (_, record) => {
-                if (record.paymentStatus === 'PAID') return <Tag color="green">PAID Card</Tag>;
+                if (record.paymentStatus === 'PAID') {
+                    if (record.paymentMethod === 'PAYPAL') return <Tag color="green">PAID (PayPal)</Tag>;
+                    return <Tag color="green">PAID (Card)</Tag>;
+                }
                 return <Tag color="orange">PENDING Spot</Tag>;
             }
         },
