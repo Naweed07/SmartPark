@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space, Select, Switch, TimePicker } from 'antd';
+import { Layout, Menu, Typography, Card, Row, Col, Statistic, Button, Modal, Form, Input, InputNumber, message, Table, Tag, Divider, Popconfirm, Space, Select, Switch, TimePicker, Badge } from 'antd';
 import { AppstoreOutlined, PlusOutlined, UnorderedListOutlined, LogoutOutlined, EnvironmentOutlined, GlobalOutlined, EditOutlined, DeleteOutlined, MinusCircleOutlined, ScanOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { getApiUrl } from '../../../utils/api';
@@ -32,6 +32,14 @@ export default function OwnerDashboard() {
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [editingSpaceId, setEditingSpaceId] = useState(null);
     const [isDynamicEnabled, setIsDynamicEnabled] = useState(false);
+
+    // Chat Modal States
+    const [isChatModalVisible, setIsChatModalVisible] = useState(false);
+    const [chatMessages, setChatMessages] = useState([]);
+    const [newChatMessage, setNewChatMessage] = useState('');
+    const [chatLoading, setChatLoading] = useState(false);
+    const [chatSpaceId, setChatSpaceId] = useState(null);
+
     const [form] = Form.useForm();
     const router = useRouter();
 
@@ -250,6 +258,59 @@ export default function OwnerDashboard() {
         });
     };
 
+    // --- CHAT LOGIC ---
+    const fetchChatMessages = async (spaceId) => {
+        setChatLoading(true);
+        try {
+            const userStr = localStorage.getItem('userInfo');
+            const token = userStr ? JSON.parse(userStr).token : null;
+            const res = await fetch(`${getApiUrl()}/admin/spaces/${spaceId}/messages`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setChatMessages(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch messages');
+        } finally {
+            setChatLoading(false);
+        }
+    };
+
+    const handleSendChatMessage = async () => {
+        if (!newChatMessage.trim() || !chatSpaceId) return;
+        try {
+            const userStr = localStorage.getItem('userInfo');
+            const token = userStr ? JSON.parse(userStr).token : null;
+            const res = await fetch(`${getApiUrl()}/admin/spaces/${chatSpaceId}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ message: newChatMessage })
+            });
+
+            if (res.ok) {
+                const savedMsg = await res.json();
+                setChatMessages([...chatMessages, savedMsg]);
+                setNewChatMessage('');
+            } else {
+                message.error('Failed to send message');
+            }
+        } catch (error) {
+            message.error('Failed to send message');
+        }
+    };
+
+    const showChatModal = (spaceId) => {
+        setChatSpaceId(spaceId);
+        setChatMessages([]);
+        setIsChatModalVisible(true);
+        fetchChatMessages(spaceId);
+    };
+
     const logout = () => {
         localStorage.removeItem('userInfo');
         router.push('/login');
@@ -298,18 +359,23 @@ export default function OwnerDashboard() {
             title: 'Action',
             key: 'action',
             render: (_, record) => (
-                <Space size="middle">
-                    <Button type="link" icon={<EditOutlined />} onClick={() => handleEditSpace(record)}>Edit</Button>
-                    <Popconfirm
-                        title="Delete the space"
-                        description="Are you sure to delete this parking space?"
-                        onConfirm={() => handleDeleteSpace(record._id)}
-                        okText="Yes"
-                        cancelText="No"
-                        okButtonProps={{ danger: true }}
-                    >
-                        <Button type="link" danger icon={<DeleteOutlined />}>Delete</Button>
-                    </Popconfirm>
+                <Space size="small" direction="vertical">
+                    <Badge dot={record.hasUnreadMessages}>
+                        <Button type="dashed" size="small" className="w-full text-xs" onClick={() => showChatModal(record._id)}>Review Notes</Button>
+                    </Badge>
+                    <Space size="middle">
+                        <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditSpace(record)}>Edit</Button>
+                        <Popconfirm
+                            title="Delete the space"
+                            description="Are you sure to delete this parking space?"
+                            onConfirm={() => handleDeleteSpace(record._id)}
+                            okText="Yes"
+                            cancelText="No"
+                            okButtonProps={{ danger: true }}
+                        >
+                            <Button type="link" danger size="small" icon={<DeleteOutlined />}>Delete</Button>
+                        </Popconfirm>
+                    </Space>
                 </Space>
             )
         },
@@ -687,6 +753,59 @@ export default function OwnerDashboard() {
                     >
                         Verify & Check-In Driver
                     </Button>
+                </div>
+            </Modal>
+
+            {/* Admin Review Chat Modal */}
+            <Modal
+                title="Admin Review Discussion"
+                open={isChatModalVisible}
+                onCancel={() => { setIsChatModalVisible(false); setChatSpaceId(null); }}
+                footer={null}
+                width={600}
+                centered
+            >
+                <div className="flex flex-col h-[500px] mt-4">
+                    <p className="text-gray-500 mb-4">
+                        If an Admin requested changes to your Space application, discuss them here. Once resolved, the Admin will approve the space.
+                    </p>
+                    <div className="flex-grow overflow-y-auto bg-gray-50 border border-gray-200 rounded p-4 mb-4 shadow-inner">
+                        {chatLoading ? (
+                            <div className="text-center text-gray-400 mt-10">Loading discussion...</div>
+                        ) : chatMessages.length === 0 ? (
+                            <div className="text-center text-gray-400 mt-10">No messages yet.</div>
+                        ) : (
+                            chatMessages.map(msg => {
+                                const isOwner = msg.senderRole === 'OWNER';
+                                return (
+                                    <div key={msg._id} className={`mb-4 flex flex-col ${isOwner ? 'items-end' : 'items-start'}`}>
+                                        <div className="mb-1 text-xs text-gray-500">
+                                            {msg.senderId?.name} ({msg.senderRole}) • {new Date(msg.createdAt).toLocaleDateString()} {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                        <div className={`px-4 py-2 rounded-lg max-w-[85%] ${isOwner ? 'bg-[#1363DF] text-white rounded-br-none' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'}`}>
+                                            {msg.message}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                    <div className="flex gap-2">
+                        <textarea
+                            className="w-full flex-grow p-3 border border-gray-300 rounded focus:border-[#1363DF] focus:ring-1 focus:ring-[#1363DF] outline-none resize-none"
+                            rows="2"
+                            placeholder="Reply to the Platform Admin..."
+                            value={newChatMessage}
+                            onChange={e => setNewChatMessage(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendChatMessage();
+                                }
+                            }}
+                        />
+                        <Button type="primary" className="h-full px-6 bg-[#1363DF] hover:!bg-[#0A1A3F] border-none" onClick={handleSendChatMessage}>Send</Button>
+                    </div>
                 </div>
             </Modal>
         </Layout>

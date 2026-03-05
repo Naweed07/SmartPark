@@ -1,4 +1,5 @@
 import ParkingSpace from '../models/ParkingSpace.js';
+import AdminReviewMessage from '../models/AdminReviewMessage.js';
 
 // @desc    Get all active parking spaces
 // @route   GET /api/spaces
@@ -94,7 +95,14 @@ const deleteSpace = async (req, res) => {
 // @route   GET /api/spaces/my
 // @access  Private/Owner
 const getOwnerSpaces = async (req, res) => {
-    const spaces = await ParkingSpace.find({ ownerId: req.user._id });
+    const spaces = await ParkingSpace.find({ ownerId: req.user._id }).lean();
+
+    // Add unread message count for Owner
+    for (let space of spaces) {
+        const hasUnread = await AdminReviewMessage.exists({ spaceId: space._id, senderRole: 'ADMIN', isRead: false });
+        space.hasUnreadMessages = !!hasUnread;
+    }
+
     res.json(spaces);
 };
 
