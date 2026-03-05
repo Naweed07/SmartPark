@@ -45,9 +45,8 @@ export const sendBookingConfirmation = async (toPhone, booking) => {
 
         const messageBody = `🚗 *SmartPark Booking Confirmed!*\n\n*Booking ID:* ${booking._id}\n*Start:* ${startDateStr}\n*End:* ${endDateStr}\n*Vehicle:* ${booking.vehicleNumber}\n*Total:* $${booking.totalAmount}\n\nThank you for using SmartPark! Have a safe trip.`;
 
-        // By default Twilio Sandbox uses whatsapp:+14155238886 format for WA, standard for SMS
-        // For this implementation, we will send standard SMS by default. To do true WA, we'd prefix with "whatsapp:"
-        const useWhatsApp = process.env.TWILIO_USE_WHATSAPP === 'true';
+        // Defaulting to WhatsApp for Sandbox environments
+        const useWhatsApp = process.env.TWILIO_USE_WHATSAPP !== 'false';
 
         const payload = {
             body: messageBody,

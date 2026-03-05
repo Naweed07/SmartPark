@@ -29,7 +29,7 @@ const createBooking = async (req, res) => {
 
     const overlappingBookings = await Booking.find({
         spaceId,
-        status: { $in: ['PENDING', 'CONFIRMED'] },
+        status: 'CONFIRMED', // Only confirmed bookings count against capacity
         $or: [
             { startTime: { $lt: parsedEndTime }, endTime: { $gt: parsedStartTime } }
         ]
@@ -52,7 +52,7 @@ const createBooking = async (req, res) => {
         totalAmount,
         bookedHours,
         appliedRateDescription,
-        status: 'CONFIRMED', // Auto-confirming the reservation itself
+        status: paymentMethod === 'PAYPAL' ? 'PENDING' : 'CONFIRMED', // PayPal bookings stay PENDING until checkout completes
         paymentMethod: paymentMethod,
         paymentStatus: (paymentMethod === 'ON_SITE' || paymentMethod === 'CARD') ? 'PENDING' : 'PAID', // Card and OnSite start pending. PayPal is only hit post-approval.
         transactionId: transactionId || null,
@@ -69,15 +69,18 @@ const createBooking = async (req, res) => {
         console.error('Failed to generate QR code:', err);
     }
 
-    // Fire off WhatsApp/SMS Booking Confirmation via Twilio
-    await sendBookingConfirmation(driverPhone, createdBooking);
+    // Only fire notifications immediately if it's NOT a PayPal booking. 
+    // PayPal bookings will fire notifications from the confirmation endpoint.
+    if (paymentMethod !== 'PAYPAL') {
+        // Fire off WhatsApp/SMS Booking Confirmation via Twilio
+        await sendBookingConfirmation(driverPhone, createdBooking);
 
-    // Fire off Email Confirmation Receipt via Nodemailer (Ethereal test logs if no .env SMTP)
-    try {
-        const startDateStr = new Date(createdBooking.startTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-        const endDateStr = new Date(createdBooking.endTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+        // Fire off Email Confirmation Receipt via Nodemailer (Ethereal test logs if no .env SMTP)
+        try {
+            const startDateStr = new Date(createdBooking.startTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            const endDateStr = new Date(createdBooking.endTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 
-        const emailHtml = `
+            const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                 <h2 style="color: #1363DF;">SmartPark Booking Confirmed! 🚗</h2>
                 <p>Hi ${driverName},</p>
@@ -106,24 +109,25 @@ const createBooking = async (req, res) => {
             </div>
         `;
 
-        const base64Data = createdBooking.qrCodeUrl.replace(/^data:image\/png;base64,/, "");
-        const imageBuffer = Buffer.from(base64Data, 'base64');
+            const base64Data = createdBooking.qrCodeUrl.replace(/^data:image\/png;base64,/, "");
+            const imageBuffer = Buffer.from(base64Data, 'base64');
 
-        await sendEmail({
-            to: driverEmail,
-            subject: "Your SmartPark Booking Receipt",
-            html: emailHtml,
-            attachments: [
-                {
-                    filename: 'qrcode.png',
-                    content: imageBuffer,
-                    cid: 'receiptQrCode' // matching cid inside the html img string
-                }
-            ]
-        });
-    } catch (emailErr) {
-        console.error("Failed to trigger email receipt:", emailErr);
-    }
+            await sendEmail({
+                to: driverEmail,
+                subject: "Your SmartPark Booking Receipt",
+                html: emailHtml,
+                attachments: [
+                    {
+                        filename: 'qrcode.png',
+                        content: imageBuffer,
+                        cid: 'receiptQrCode' // matching cid inside the html img string
+                    }
+                ]
+            });
+        } catch (emailErr) {
+            console.error("Failed to trigger email receipt:", emailErr);
+        }
+    } // End of non-PayPal block
 
     res.status(201).json(createdBooking);
 };
