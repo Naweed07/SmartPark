@@ -22,7 +22,7 @@ const redIcon = new L.Icon({
 function SearchedLocationController({ searchedLocation }) {
     const map = useMap();
     useEffect(() => {
-        if (searchedLocation) {
+        if (searchedLocation && map && typeof map.flyTo === 'function') {
             map.flyTo(searchedLocation, 14);
         }
     }, [searchedLocation, map]);
@@ -52,7 +52,7 @@ function LocationMarker({ onLocationFound, hasSearched }) {
 
                 setPosition(latlng);
 
-                if (!hasSearched) {
+                if (!hasSearched && map && typeof map.flyTo === 'function') {
                     map.flyTo(latlng, 14); // Zoom in on the user's location
                 }
 
@@ -61,11 +61,13 @@ function LocationMarker({ onLocationFound, hasSearched }) {
             (err) => {
                 console.warn("High-accuracy geolocation failed or was denied:", err);
                 // Fallback to leaflet's basic IP-based locate if native retrieval fails.
-                map.locate().on("locationfound", function (e) {
-                    setPosition(e.latlng);
-                    if (!hasSearched) map.flyTo(e.latlng, 14);
-                    if (onLocationFound) onLocationFound(e.latlng);
-                });
+                if (map && typeof map.locate === 'function') {
+                    map.locate().on("locationfound", function (e) {
+                        setPosition(e.latlng);
+                        if (!hasSearched && map && typeof map.flyTo === 'function') map.flyTo(e.latlng, 14);
+                        if (onLocationFound) onLocationFound(e.latlng);
+                    });
+                }
             }
             // Removed strict `{ enableHighAccuracy: true }` because it consistently times out on Windows Desktop
         );

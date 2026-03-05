@@ -1,7 +1,6 @@
 import express from 'express';
 import { protect } from '../middleware/authMiddleware.js';
 import Booking from '../models/Booking.js';
-import sendEmail from '../utils/sendEmail.js';
 
 const router = express.Router();
 
