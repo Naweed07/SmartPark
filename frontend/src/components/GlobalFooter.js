@@ -93,7 +93,7 @@ export default function GlobalFooter() {
                         &copy; {currentYear} SmartPark Ltd. All rights reserved.
                     </p>
                     <div className="flex gap-8 mt-6 md:mt-0">
-                        <a href="#" className="text-[#0a1f44] dark:text-slate-400 opacity-80 hover:opacity-100 hover:text-[#1363DF] dark:hover:text-[#3b82f6] text-sm font-medium transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-px after:bg-[#1363DF] hover:after:w-full after:transition-all">Privacy Policy</a>
+                        <Link href="/privacy-policy" className="text-[#0a1f44] dark:text-slate-400 opacity-80 hover:opacity-100 hover:text-[#1363DF] dark:hover:text-[#3b82f6] text-sm font-medium transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-px after:bg-[#1363DF] hover:after:w-full after:transition-all">Privacy Policy</Link>
                         <a href="#" className="text-[#0a1f44] dark:text-slate-400 opacity-80 hover:opacity-100 hover:text-[#1363DF] dark:hover:text-[#3b82f6] text-sm font-medium transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-px after:bg-[#1363DF] hover:after:w-full after:transition-all">Terms of Service</a>
                         <a href="#" className="text-[#0a1f44] dark:text-slate-400 opacity-80 hover:opacity-100 hover:text-[#1363DF] dark:hover:text-[#3b82f6] text-sm font-medium transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-px after:bg-[#1363DF] hover:after:w-full after:transition-all">Cookie Policy</a>
                     </div>
