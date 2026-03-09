@@ -42,35 +42,53 @@ function LocationMarker({ onLocationFound, hasSearched }) {
     const [position, setPosition] = useState(null);
 
     useEffect(() => {
+        let isMounted = true;
         if (!navigator.geolocation) return;
 
         // Force the browser to bypass IP caching and request high-accuracy GPS
         navigator.geolocation.getCurrentPosition(
             (pos) => {
+                if (!isMounted) return;
                 const { latitude, longitude } = pos.coords;
                 const latlng = { lat: latitude, lng: longitude };
 
                 setPosition(latlng);
 
                 if (!hasSearched && map && typeof map.flyTo === 'function') {
-                    map.flyTo(latlng, 14); // Zoom in on the user's location
+                    try {
+                        map.flyTo(latlng, 14); // Zoom in on the user's location
+                    } catch (e) {
+                        console.warn("Map instance was not ready to flyTo:", e);
+                    }
                 }
 
                 if (onLocationFound) onLocationFound(latlng);
             },
             (err) => {
+                if (!isMounted) return;
                 console.warn("High-accuracy geolocation failed or was denied:", err);
                 // Fallback to leaflet's basic IP-based locate if native retrieval fails.
                 if (map && typeof map.locate === 'function') {
                     map.locate().on("locationfound", function (e) {
+                        if (!isMounted) return;
                         setPosition(e.latlng);
-                        if (!hasSearched && map && typeof map.flyTo === 'function') map.flyTo(e.latlng, 14);
+                        if (!hasSearched && map && typeof map.flyTo === 'function') {
+                            try {
+                                map.flyTo(e.latlng, 14);
+                            } catch (err) {
+                                console.warn("Map instance was not ready to flyTo:", err);
+                            }
+                        }
                         if (onLocationFound) onLocationFound(e.latlng);
                     });
                 }
             }
             // Removed strict `{ enableHighAccuracy: true }` because it consistently times out on Windows Desktop
         );
+
+        return () => {
+            isMounted = false;
+        };
     }, [map, onLocationFound, hasSearched]);
 
     return position === null ? null : (
